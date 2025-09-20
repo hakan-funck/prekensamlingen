@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { SermonGrid } from '@/components/SermonGrid';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import type { Sermon } from '@/components/SermonCard';
 import { sortBooksInBiblicalOrder } from '@/lib/bible';
+import { fetchSermonsFromSheet, type RawSermonData } from '@/lib/googleSheets';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,104 +13,52 @@ export default function Home() {
   const [selectedBibleBook, setSelectedBibleBook] = useState<string | null>(null);
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [allSermons, setAllSermons] = useState<Sermon[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data based on Google Sheets - will be replaced with API calls
-  const allSermons: Sermon[] = [
-    {
-      id: '1',
-      speaker: 'Heino Kouva',
-      date: '1967-05-14',
-      bibleBook: 'Matt',
-      bibleChapter: '5',
-      bibleVerses: '27-30',
-      språk: 'fi',
-      tolk: 'Hans Sundberg',
-      tolkTilSpråk: 'sv',
-      duration: '29:10',
-      sted: 'Bosund',
-      kilde: 'Kassett HF 616',
-      annenInfo: 'Pinseforsamling',
-      audioUrl: '#'
-    },
-    {
-      id: '2',
-      speaker: 'Andreas Ventin',
-      date: '1975',
-      bibleBook: 'Luk',
-      bibleChapter: '10',
-      bibleVerses: '30-35',
-      språk: 'sv',
-      tolk: 'Östen Tano',
-      tolkTilSpråk: 'fi',
-      duration: '42:45',
-      sted: 'Svanstein',
-      kilde: 'Kassett',
-      audioUrl: '#'
-    },
-    {
-      id: '3',
-      speaker: 'Kåre Suhr',
-      date: '2015',
-      bibleBook: 'Jer',
-      bibleChapter: '31',
-      bibleVerses: '31-34',
-      språk: 'no',
-      tolk: '-',
-      tolkTilSpråk: '-',
-      duration: '17:04',
-      sted: 'Elvebakken',
-      kilde: 'Opptak i benken',
-      annenInfo: 'Litt dårlig lydkvalitet',
-      audioUrl: '#'
-    },
-    {
-      id: '4',
-      speaker: 'Viktor Ylipää',
-      date: '24.03.1990',
-      bibleBook: 'Ef',
-      bibleChapter: '2',
-      bibleVerses: '11-22',
-      språk: 'fi',
-      tolk: 'Harry Ylipää',
-      tolkTilSpråk: 'sv',
-      duration: '59:58',
-      sted: 'Pajala',
-      kilde: 'Kassett HF 630',
-      annenInfo: 'Salme på slutten',
-      audioUrl: '#'
-    },
-    {
-      id: '5',
-      speaker: 'Alvin Holmgren',
-      date: '30.11.1997',
-      bibleBook: 'Joh',
-      bibleChapter: '1',
-      bibleVerses: '1-14',
-      språk: 'en',
-      tolk: '-',
-      tolkTilSpråk: '-',
-      duration: '44:46',
-      sted: 'Clatskanie, Oregon',
-      kilde: 'Kassett',
-      annenInfo: 'Innledningsbønn av Arne Nordahl og salme før preken. Preken begynner på ca 8:00',
-      audioUrl: '#'
-    },
-    {
-      id: '6',
-      speaker: 'Henry Baardsen',
-      date: '16.05.2021',
-      bibleBook: 'Joh',
-      bibleChapter: '3',
-      bibleVerses: '16-21',
-      språk: 'no',
-      tolk: '-',
-      tolkTilSpråk: '-',
-      duration: '38:41',
-      sted: 'Elvebakken',
-      kilde: 'Youtube',
-      audioUrl: '#'
-    }
-  ];
+  // Fetch real sermon data from Google Sheets
+  useEffect(() => {
+    const loadSermons = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Your spreadsheet ID
+        const spreadsheetId = '1mKk16Z1sJ--Dj5GQCVOJE7erRClYAsVUaSiql_RsZfg';
+        
+        // Fetch first 6 sermons as requested
+        const rawSermons = await fetchSermonsFromSheet(spreadsheetId, 6);
+        
+        // Convert to Sermon format
+        const sermons: Sermon[] = rawSermons.map((raw, index) => ({
+          id: (index + 1).toString(),
+          speaker: raw.speaker,
+          date: raw.date,
+          bibleBook: raw.bibleBook,
+          bibleChapter: raw.bibleChapter,
+          bibleVerses: raw.bibleVerses,
+          språk: raw.språk as 'fi' | 'sv' | 'no' | 'en',
+          tolk: raw.tolk,
+          tolkTilSpråk: raw.tolkTilSpråk as 'fi' | 'sv' | 'no' | 'en' | '-',
+          duration: raw.duration,
+          sted: raw.sted,
+          kilde: raw.kilde,
+          annenInfo: raw.annenInfo,
+          audioUrl: raw.audioUrl
+        }));
+        
+        setAllSermons(sermons);
+      } catch (err) {
+        console.error('Error loading sermons:', err);
+        setError('Kunne ikke laste prekener fra Google Sheets');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadSermons();
+  }, []);
 
   // Extract unique speakers, years, and bible books
   const speakers = useMemo(() => {
@@ -236,6 +185,38 @@ export default function Home() {
     console.log('Player closed');
     setIsPlaying(false);
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Laster prekener fra Google Sheets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-destructive mb-2">Feil ved lasting av data</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+            >
+              Prøv igjen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

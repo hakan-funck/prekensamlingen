@@ -17,7 +17,7 @@ export interface Sermon {
   sted: string; // Location where sermon was held
   kilde: string; // Source: Kassett, CD, Minnepenn, Youtube, etc.
   annenInfo?: string; // Additional information
-  audioUrl?: string; // Will be extracted from hyperlink
+  audioUrl: string; // Audio URL from Google Drive
 }
 
 interface SermonCardProps {
