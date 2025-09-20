@@ -40,6 +40,18 @@ export default function About() {
             </CardContent>
           </Card>
 
+          {/* Funksjonalitet */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">Funksjonalitet</h2>
+              <div className="space-y-4 text-muted-foreground">
+                <p>
+                  For å gjøre det enklere å finne det du leter etter, er appen utstyrt med flere filterfunksjoner. Du kan filtrere taler basert på bibelbøker, talere og steder. I tillegg er det for hver preken en lenke til den tilhørende bibelteksten. Denne lenken fører deg til den norske 1930-oversettelsen på bible.com, hvor du selv kan velge en annen oversettelse hvis du ønsker det.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Læstadiansk bakgrunn */}
           <Card>
             <CardContent className="p-6">
