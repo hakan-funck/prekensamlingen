@@ -35,13 +35,29 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
+    const handleError = (e: Event) => {
+      console.error('Audio error:', e);
+      console.error('Audio error details:', audio.error);
+    };
+    const handleLoadStart = () => {
+      console.log('Audio load started for:', sermon?.speaker);
+    };
+    const handleCanPlay = () => {
+      console.log('Audio can play for:', sermon?.speaker);
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('canplay', handleCanPlay);
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime);
       audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('canplay', handleCanPlay);
     };
   }, [sermon]);
 
@@ -114,13 +130,15 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
         <audio
           ref={audioRef}
           src={sermon.audioUrl}
+          crossOrigin="anonymous"
+          preload="metadata"
           onEnded={() => onClose()}
         />
 
         {/* Sermon Info */}
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate" data-testid="text-current-sermon-title">
-            {sermon.title}
+            {sermon.speaker} - {sermon.bibleBook} {sermon.bibleChapter}:{sermon.bibleVerses}
           </h4>
           <p className="text-xs text-muted-foreground truncate">
             {sermon.speaker}

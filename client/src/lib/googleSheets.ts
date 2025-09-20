@@ -22,14 +22,20 @@ export function convertGoogleDriveUrl(shareUrl: string): string {
     return '#';
   }
   
+  console.log('Converting Google Drive URL:', shareUrl);
+  
   // Extract file ID from Google Drive share URL
   const fileIdMatch = shareUrl.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
   if (fileIdMatch) {
     const fileId = fileIdMatch[1];
-    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    // Try the streaming URL format instead of download
+    const streamingUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    console.log('Converted to streaming URL:', streamingUrl);
+    return streamingUrl;
   }
   
   // If it's already a direct URL or not a Google Drive URL, return as-is
+  console.log('Using original URL:', shareUrl);
   return shareUrl;
 }
 
@@ -62,8 +68,8 @@ export function convertLanguageToCode(lang: string): 'fi' | 'sv' | 'no' | 'en' |
 
 // Parse CSV row to sermon data
 export function parseSermonRow(row: string[], index: number): RawSermonData | null {
-  // Skip header row and empty rows
-  if (index === 0 || !row || row.length < 12) {
+  // Skip first 4 rows (header/metadata) and empty rows - data starts from row 5 (index 4)
+  if (index < 4 || !row || row.length < 12) {
     return null;
   }
   
