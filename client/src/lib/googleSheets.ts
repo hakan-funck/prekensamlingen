@@ -22,8 +22,6 @@ export function convertGoogleDriveUrl(shareUrl: string): string {
     return '#';
   }
   
-  console.log('Converting Google Drive URL:', shareUrl);
-  
   // Extract file ID from Google Drive share URL
   const fileIdMatch = shareUrl.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
   if (fileIdMatch) {
@@ -31,12 +29,10 @@ export function convertGoogleDriveUrl(shareUrl: string): string {
     
     // Use our backend proxy to stream the audio file
     const proxyUrl = `/api/audio/${fileId}`;
-    console.log('Converted to proxy URL:', proxyUrl);
     return proxyUrl;
   }
   
   // If it's already a direct URL or not a Google Drive URL, return as-is
-  console.log('Using original URL:', shareUrl);
   return shareUrl;
 }
 
