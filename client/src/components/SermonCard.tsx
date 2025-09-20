@@ -168,7 +168,7 @@ export function SermonCard({
               {sermon.tolk !== '-' && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tolk:</span>
-                  <span>{sermon.tolkTilSpråk}</span>
+                  <span>{sermon.tolk} → {sermon.tolkTilSpråk}</span>
                 </div>
               )}
               <div className="flex justify-between">

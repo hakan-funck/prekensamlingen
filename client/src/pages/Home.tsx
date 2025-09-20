@@ -34,7 +34,7 @@ export default function Home() {
     {
       id: '2',
       speaker: 'Andreas Ventin',
-      date: '',
+      date: '1975',
       bibleBook: 'Luk',
       bibleChapter: '10',
       bibleVerses: '30-35',
@@ -49,7 +49,7 @@ export default function Home() {
     {
       id: '3',
       speaker: 'Kåre Suhr',
-      date: '',
+      date: '2015',
       bibleBook: 'Jer',
       bibleChapter: '31',
       bibleVerses: '31-34',
