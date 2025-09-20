@@ -8,9 +8,10 @@ import { fetchSermonsFromSheet, type RawSermonData } from '@/lib/googleSheets';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSpeakers, setSelectedSpeakers] = useState<string[]>([]);
-  const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | string | null>(null);
   const [selectedBibleBook, setSelectedBibleBook] = useState<string | null>(null);
+  const [selectedInterpreter, setSelectedInterpreter] = useState<string | null>(null);
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [allSermons, setAllSermons] = useState<Sermon[]>([]);
@@ -62,7 +63,18 @@ export default function Home() {
 
   // Extract unique speakers, years, and bible books
   const speakers = useMemo(() => {
-    return Array.from(new Set(allSermons.map(sermon => sermon.speaker))).sort();
+    return Array.from(new Set(allSermons.map(sermon => sermon.speaker))).sort((a, b) => a.localeCompare(b, 'nb-NO'));
+  }, [allSermons]);
+
+  const interpreters = useMemo(() => {
+    const uniqueInterpreters = Array.from(
+      new Set(
+        allSermons
+          .map(sermon => sermon.tolk)
+          .filter(tolk => tolk && tolk.trim() !== '' && tolk !== '-')
+      )
+    );
+    return uniqueInterpreters.sort((a, b) => a.localeCompare(b, 'nb-NO'));
   }, [allSermons]);
 
   const years = useMemo(() => {
@@ -98,7 +110,10 @@ export default function Home() {
         .map(sermon => getSermonYear(sermon.date))
         .filter((year): year is number => year !== null)
     );
-    return Array.from(yearSet).sort((a, b) => b - a);
+    
+    // Always include "Ukjent" option and sort chronologically (oldest first)
+    const yearsWithUnknown = Array.from(yearSet).sort((a, b) => a - b);
+    return yearsWithUnknown;
   }, [allSermons]);
 
   const bibleBooks = useMemo(() => {
@@ -119,8 +134,7 @@ export default function Home() {
         sermon.annenInfo?.toLowerCase().includes(searchLower);
 
       // Speaker filter
-      const matchesSpeaker = selectedSpeakers.length === 0 || 
-        selectedSpeakers.includes(sermon.speaker);
+      const matchesSpeaker = !selectedSpeaker || sermon.speaker === selectedSpeaker;
 
       // Year filter
       const getSermonYear = (dateString: string): number | null => {
@@ -151,18 +165,21 @@ export default function Home() {
       };
       
       const sermonYear = getSermonYear(sermon.date);
-      const matchesYear = selectedYears.length === 0 || 
-        (sermonYear !== null && selectedYears.includes(sermonYear));
+      const matchesYear = !selectedYear || 
+        (selectedYear === "Ukjent" ? sermonYear === null : sermonYear === selectedYear);
 
       // Bible book filter
       const matchesBibleBook = !selectedBibleBook || 
         sermon.bibleBook === selectedBibleBook;
 
-      return matchesSearch && matchesSpeaker && matchesYear && matchesBibleBook;
-    });
-  }, [allSermons, searchQuery, selectedSpeakers, selectedYears, selectedBibleBook]);
+      // Interpreter filter
+      const matchesInterpreter = !selectedInterpreter || sermon.tolk === selectedInterpreter;
 
-  const activeFiltersCount = selectedSpeakers.length + selectedYears.length + (selectedBibleBook ? 1 : 0);
+      return matchesSearch && matchesSpeaker && matchesYear && matchesBibleBook && matchesInterpreter;
+    });
+  }, [allSermons, searchQuery, selectedSpeaker, selectedYear, selectedBibleBook, selectedInterpreter]);
+
+  const activeFiltersCount = (selectedSpeaker ? 1 : 0) + (selectedYear ? 1 : 0) + (selectedBibleBook ? 1 : 0) + (selectedInterpreter ? 1 : 0);
 
   const handlePlayPause = (sermon: Sermon) => {
     if (currentSermon?.id === sermon.id) {
@@ -224,14 +241,17 @@ export default function Home() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         speakers={speakers}
-        selectedSpeakers={selectedSpeakers}
-        onSpeakersChange={setSelectedSpeakers}
+        selectedSpeaker={selectedSpeaker}
+        onSpeakerChange={setSelectedSpeaker}
         years={years}
-        selectedYears={selectedYears}
-        onYearsChange={setSelectedYears}
+        selectedYear={selectedYear}
+        onYearChange={setSelectedYear}
         bibleBooks={bibleBooks}
         selectedBibleBook={selectedBibleBook}
         onBibleBookChange={setSelectedBibleBook}
+        interpreters={interpreters}
+        selectedInterpreter={selectedInterpreter}
+        onInterpreterChange={setSelectedInterpreter}
         activeFiltersCount={activeFiltersCount}
       />
       

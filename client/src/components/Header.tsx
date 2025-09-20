@@ -7,14 +7,17 @@ interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   speakers: string[];
-  selectedSpeakers: string[];
-  onSpeakersChange: (speakers: string[]) => void;
+  selectedSpeaker: string | null;
+  onSpeakerChange: (speaker: string | null) => void;
   years: number[];
-  selectedYears: number[];
-  onYearsChange: (years: number[]) => void;
+  selectedYear: number | string | null;
+  onYearChange: (year: number | string | null) => void;
   bibleBooks: string[];
   selectedBibleBook: string | null;
   onBibleBookChange: (bibleBook: string | null) => void;
+  interpreters: string[];
+  selectedInterpreter: string | null;
+  onInterpreterChange: (interpreter: string | null) => void;
   activeFiltersCount: number;
 }
 
@@ -22,14 +25,17 @@ export function Header({
   searchQuery,
   onSearchChange,
   speakers,
-  selectedSpeakers,
-  onSpeakersChange,
+  selectedSpeaker,
+  onSpeakerChange,
   years,
-  selectedYears,
-  onYearsChange,
+  selectedYear,
+  onYearChange,
   bibleBooks,
   selectedBibleBook,
   onBibleBookChange,
+  interpreters,
+  selectedInterpreter,
+  onInterpreterChange,
   activeFiltersCount,
 }: HeaderProps) {
   return (
@@ -55,14 +61,17 @@ export function Header({
           <div className="flex items-center gap-2 shrink-0">
             <FilterPanel
               speakers={speakers}
-              selectedSpeakers={selectedSpeakers}
-              onSpeakersChange={onSpeakersChange}
+              selectedSpeaker={selectedSpeaker}
+              onSpeakerChange={onSpeakerChange}
               years={years}
-              selectedYears={selectedYears}
-              onYearsChange={onYearsChange}
+              selectedYear={selectedYear}
+              onYearChange={onYearChange}
               bibleBooks={bibleBooks}
               selectedBibleBook={selectedBibleBook}
               onBibleBookChange={onBibleBookChange}
+              interpreters={interpreters}
+              selectedInterpreter={selectedInterpreter}
+              onInterpreterChange={onInterpreterChange}
               activeFiltersCount={activeFiltersCount}
             />
             <ThemeToggle />
