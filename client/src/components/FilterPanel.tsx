@@ -11,6 +11,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface FilterPanelProps {
   speakers: string[];
@@ -20,8 +27,8 @@ interface FilterPanelProps {
   selectedYears: number[];
   onYearsChange: (years: number[]) => void;
   bibleBooks: string[];
-  selectedBibleBooks: string[];
-  onBibleBooksChange: (bibleBooks: string[]) => void;
+  selectedBibleBook: string | null;
+  onBibleBookChange: (bibleBook: string | null) => void;
   activeFiltersCount: number;
 }
 
@@ -33,8 +40,8 @@ export function FilterPanel({
   selectedYears,
   onYearsChange,
   bibleBooks,
-  selectedBibleBooks,
-  onBibleBooksChange,
+  selectedBibleBook,
+  onBibleBookChange,
   activeFiltersCount,
 }: FilterPanelProps) {
   const handleSpeakerToggle = (speaker: string) => {
@@ -53,18 +60,18 @@ export function FilterPanel({
     }
   };
 
-  const handleBibleBookToggle = (bibleBook: string) => {
-    if (selectedBibleBooks.includes(bibleBook)) {
-      onBibleBooksChange(selectedBibleBooks.filter(b => b !== bibleBook));
+  const handleBibleBookChange = (value: string) => {
+    if (value === 'all') {
+      onBibleBookChange(null);
     } else {
-      onBibleBooksChange([...selectedBibleBooks, bibleBook]);
+      onBibleBookChange(value);
     }
   };
 
   const clearAllFilters = () => {
     onSpeakersChange([]);
     onYearsChange([]);
-    onBibleBooksChange([]);
+    onBibleBookChange(null);
   };
 
   return (
@@ -84,7 +91,7 @@ export function FilterPanel({
         <SheetHeader>
           <SheetTitle>Filtrer prekener</SheetTitle>
           <SheetDescription>
-            Velg taler, bibelbøker og år for å filtrere prekenene
+            Velg taler, bibelbok og år for å filtrere prekenene
           </SheetDescription>
         </SheetHeader>
         <div className="space-y-6 mt-6">
@@ -120,24 +127,26 @@ export function FilterPanel({
               <BookOpen className="h-4 w-4 text-muted-foreground" />
               <Label className="text-sm font-medium">Bibelbok</Label>
             </div>
-            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-              {bibleBooks.map((bibleBook) => (
-                <div key={bibleBook} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`bible-book-${bibleBook}`}
-                    checked={selectedBibleBooks.includes(bibleBook)}
-                    onCheckedChange={() => handleBibleBookToggle(bibleBook)}
-                    data-testid={`checkbox-bible-book-${bibleBook}`}
-                  />
-                  <Label
-                    htmlFor={`bible-book-${bibleBook}`}
-                    className="text-sm cursor-pointer"
+            <Select 
+              value={selectedBibleBook || 'all'} 
+              onValueChange={handleBibleBookChange}
+            >
+              <SelectTrigger data-testid="select-bible-book">
+                <SelectValue placeholder="Velg bibelbok" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle bøker</SelectItem>
+                {bibleBooks.map((bibleBook) => (
+                  <SelectItem 
+                    key={bibleBook} 
+                    value={bibleBook}
+                    data-testid={`option-bible-book-${bibleBook}`}
                   >
                     {bibleBook}
-                  </Label>
-                </div>
-              ))}
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Years Filter */}

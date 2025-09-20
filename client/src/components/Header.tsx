@@ -13,8 +13,8 @@ interface HeaderProps {
   selectedYears: number[];
   onYearsChange: (years: number[]) => void;
   bibleBooks: string[];
-  selectedBibleBooks: string[];
-  onBibleBooksChange: (bibleBooks: string[]) => void;
+  selectedBibleBook: string | null;
+  onBibleBookChange: (bibleBook: string | null) => void;
   activeFiltersCount: number;
 }
 
@@ -28,8 +28,8 @@ export function Header({
   selectedYears,
   onYearsChange,
   bibleBooks,
-  selectedBibleBooks,
-  onBibleBooksChange,
+  selectedBibleBook,
+  onBibleBookChange,
   activeFiltersCount,
 }: HeaderProps) {
   return (
@@ -61,8 +61,8 @@ export function Header({
               selectedYears={selectedYears}
               onYearsChange={onYearsChange}
               bibleBooks={bibleBooks}
-              selectedBibleBooks={selectedBibleBooks}
-              onBibleBooksChange={onBibleBooksChange}
+              selectedBibleBook={selectedBibleBook}
+              onBibleBookChange={onBibleBookChange}
               activeFiltersCount={activeFiltersCount}
             />
             <ThemeToggle />

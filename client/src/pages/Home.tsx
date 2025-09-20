@@ -3,12 +3,13 @@ import { Header } from '@/components/Header';
 import { SermonGrid } from '@/components/SermonGrid';
 import { AudioPlayer } from '@/components/AudioPlayer';
 import type { Sermon } from '@/components/SermonCard';
+import { sortBooksInBiblicalOrder } from '@/lib/bible';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpeakers, setSelectedSpeakers] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
-  const [selectedBibleBooks, setSelectedBibleBooks] = useState<string[]>([]);
+  const [selectedBibleBook, setSelectedBibleBook] = useState<string | null>(null);
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -121,7 +122,8 @@ export default function Home() {
   }, [allSermons]);
 
   const bibleBooks = useMemo(() => {
-    return Array.from(new Set(allSermons.map(sermon => sermon.bibleBook))).sort();
+    const uniqueBooks = Array.from(new Set(allSermons.map(sermon => sermon.bibleBook)));
+    return sortBooksInBiblicalOrder(uniqueBooks);
   }, [allSermons]);
 
   // Filter sermons based on search and filters
@@ -146,14 +148,14 @@ export default function Home() {
         selectedYears.includes(sermonYear);
 
       // Bible book filter
-      const matchesBibleBook = selectedBibleBooks.length === 0 || 
-        selectedBibleBooks.includes(sermon.bibleBook);
+      const matchesBibleBook = !selectedBibleBook || 
+        sermon.bibleBook === selectedBibleBook;
 
       return matchesSearch && matchesSpeaker && matchesYear && matchesBibleBook;
     });
-  }, [allSermons, searchQuery, selectedSpeakers, selectedYears, selectedBibleBooks]);
+  }, [allSermons, searchQuery, selectedSpeakers, selectedYears, selectedBibleBook]);
 
-  const activeFiltersCount = selectedSpeakers.length + selectedYears.length + selectedBibleBooks.length;
+  const activeFiltersCount = selectedSpeakers.length + selectedYears.length + (selectedBibleBook ? 1 : 0);
 
   const handlePlayPause = (sermon: Sermon) => {
     if (currentSermon?.id === sermon.id) {
@@ -189,8 +191,8 @@ export default function Home() {
         selectedYears={selectedYears}
         onYearsChange={setSelectedYears}
         bibleBooks={bibleBooks}
-        selectedBibleBooks={selectedBibleBooks}
-        onBibleBooksChange={setSelectedBibleBooks}
+        selectedBibleBook={selectedBibleBook}
+        onBibleBookChange={setSelectedBibleBook}
         activeFiltersCount={activeFiltersCount}
       />
       
