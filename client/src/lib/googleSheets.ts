@@ -16,7 +16,7 @@ export interface RawSermonData {
   annenInfo?: string;
 }
 
-// Convert Google Drive sharing URL to direct streaming URL
+// Convert Google Drive sharing URL to use our backend proxy
 export function convertGoogleDriveUrl(shareUrl: string): string {
   if (!shareUrl || shareUrl.trim() === '' || shareUrl === '-') {
     return '#';
@@ -28,10 +28,11 @@ export function convertGoogleDriveUrl(shareUrl: string): string {
   const fileIdMatch = shareUrl.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
   if (fileIdMatch) {
     const fileId = fileIdMatch[1];
-    // Try the streaming URL format instead of download
-    const streamingUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
-    console.log('Converted to streaming URL:', streamingUrl);
-    return streamingUrl;
+    
+    // Use our backend proxy to stream the audio file
+    const proxyUrl = `/api/audio/${fileId}`;
+    console.log('Converted to proxy URL:', proxyUrl);
+    return proxyUrl;
   }
   
   // If it's already a direct URL or not a Google Drive URL, return as-is
