@@ -1,7 +1,9 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, Info } from "lucide-react";
+import { Link } from "wouter";
 import { SearchBar } from "./SearchBar";
 import { FilterPanel } from "./FilterPanel";
 import { ThemeToggle } from "./ThemeToggle";
+import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
   searchQuery: string;
@@ -74,6 +76,12 @@ export function Header({
               onInterpreterChange={onInterpreterChange}
               activeFiltersCount={activeFiltersCount}
             />
+            <Button variant="ghost" size="sm" className="gap-2" data-testid="button-about" asChild>
+              <Link href="/about">
+                <Info className="h-4 w-4" />
+                Om
+              </Link>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
