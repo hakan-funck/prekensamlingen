@@ -34,7 +34,7 @@ export function Header({
           <div className="flex items-center gap-2 shrink-0">
             <BookOpen className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-serif font-semibold text-foreground">
-              Prekener
+              Prekensamlingen
             </h1>
           </div>
 

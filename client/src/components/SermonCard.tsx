@@ -12,6 +12,12 @@ export interface Sermon {
   duration: string;
   description?: string;
   audioUrl: string;
+  sted: string; // Location where sermon was held
+  språk: 'no' | 'sv' | 'fi' | 'eng'; // Language abbreviations
+  tolk: string; // Interpreter (- if none)
+  interpreterName?: string; // Full name of interpreter (for detail view)
+  kilde: string; // Source
+  annenInfo?: string; // Additional information
 }
 
 interface SermonCardProps {

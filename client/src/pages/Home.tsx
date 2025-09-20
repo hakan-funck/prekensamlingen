@@ -149,7 +149,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h2 className="text-2xl font-serif font-semibold text-foreground mb-2">
-            Prekener
+            Prekensamlingen
           </h2>
           <p className="text-muted-foreground">
             {filteredSermons.length === allSermons.length 
