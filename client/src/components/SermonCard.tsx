@@ -36,12 +36,22 @@ export function SermonCard({
   onToggleExpand 
 }: SermonCardProps) {
   const formatDate = (dateString: string) => {
+    if (!dateString || dateString.trim() === '') {
+      return '-';
+    }
+    
     const date = new Date(dateString);
-    return date.toLocaleDateString('nb-NO', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+    
+    // Check if date is invalid
+    if (isNaN(date.getTime())) {
+      return '-';
+    }
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}.${month}.${year}`;
   };
 
   const handleCardClick = () => {
