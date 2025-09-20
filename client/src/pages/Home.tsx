@@ -5,6 +5,8 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import type { Sermon } from '@/components/SermonCard';
 import { sortBooksInBiblicalOrder } from '@/lib/bible';
 import { fetchSermonsFromSheet, type RawSermonData } from '@/lib/googleSheets';
+import { parseSermonFromUrl, findSermonFromCriteria } from '@/lib/shareUtils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +19,7 @@ export default function Home() {
   const [allSermons, setAllSermons] = useState<Sermon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Fetch real sermon data from Google Sheets
   useEffect(() => {
@@ -60,6 +63,67 @@ export default function Home() {
     
     loadSermons();
   }, []);
+
+  // Handle shared sermon URLs
+  useEffect(() => {
+    if (allSermons.length === 0) return;
+    
+    const sharedData = parseSermonFromUrl();
+    if (sharedData?.sermonId) {
+      const sermon = findSermonFromCriteria(allSermons, sharedData);
+      
+      if (sermon) {
+        // Clear all filters to ensure sermon is visible
+        setSearchQuery('');
+        setSelectedSpeaker(null);
+        setSelectedYear(null);
+        setSelectedBibleBook(null);
+        setSelectedInterpreter(null);
+        
+        // Set the sermon as current
+        setCurrentSermon(sermon);
+        
+        // Show success message
+        toast({
+          title: "Preke funnet!",
+          description: `Åpnet delt preke av ${sermon.speaker}`,
+          duration: 4000,
+        });
+        
+        // Clear the URL parameters after handling
+        const url = new URL(window.location.href);
+        url.searchParams.delete('sermon');
+        url.searchParams.delete('speaker');
+        url.searchParams.delete('date');
+        url.searchParams.delete('reference');
+        window.history.replaceState({}, '', url.toString());
+        
+        // Scroll to the sermon card after a short delay
+        setTimeout(() => {
+          const sermonElement = document.querySelector(`[data-testid="card-sermon-${sermon.id}"]`);
+          if (sermonElement) {
+            sermonElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 200);
+      } else {
+        // Show error if sermon not found
+        toast({
+          title: "Preke ikke funnet",
+          description: "Kunne ikke finne den delte prekenen. Den kan ha blitt flyttet eller slettet.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        
+        // Still clear URL parameters
+        const url = new URL(window.location.href);
+        url.searchParams.delete('sermon');
+        url.searchParams.delete('speaker');
+        url.searchParams.delete('date');
+        url.searchParams.delete('reference');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, [allSermons, toast]);
 
   // Extract unique speakers, years, and bible books
   const speakers = useMemo(() => {

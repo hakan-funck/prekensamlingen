@@ -1,8 +1,11 @@
-import { Play, Pause, Calendar, User, BookOpen, Clock, MapPin, Globe, Users, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Play, Pause, Calendar, User, BookOpen, Clock, MapPin, Globe, Users, ChevronDown, ChevronUp, ExternalLink, Share2, Check } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { generateBibleUrlFromReference } from "@/lib/bibleUrl";
+import { generateSermonShareUrl, copyToClipboard } from "@/lib/shareUtils";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export interface Sermon {
   id: string;
@@ -36,6 +39,10 @@ export function SermonCard({
   isExpanded = false, 
   onToggleExpand 
 }: SermonCardProps) {
+  const { toast } = useToast();
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+  
   const formatDate = (dateString: string) => {
     if (!dateString || dateString.trim() === '') {
       return '-';
@@ -88,6 +95,37 @@ export function SermonCard({
     );
     if (bibleUrl) {
       window.open(bibleUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleShareClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      setIsSharing(true);
+      const shareUrl = generateSermonShareUrl(sermon);
+      await copyToClipboard(shareUrl);
+      
+      setShareSuccess(true);
+      
+      toast({
+        title: "Lenke kopiert!",
+        description: "Prekenlenken er kopiert til utklippstavlen.",
+        duration: 3000,
+      });
+      
+      // Reset success state after delay
+      setTimeout(() => setShareSuccess(false), 2000);
+    } catch (error) {
+      console.error('Error sharing sermon:', error);
+      toast({
+        title: "Kunne ikke kopiere lenke",
+        description: "Prøv igjen eller kopier URL-en manuelt.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -202,8 +240,8 @@ export function SermonCard({
                   <span className="text-xs text-muted-foreground">{sermon.annenInfo}</span>
                 </div>
               )}
-              {/* Play button in expanded view */}
-              <div className="pt-2">
+              {/* Action buttons in expanded view */}
+              <div className="pt-2 space-y-2">
                 <Button 
                   onClick={handlePlayClick}
                   className="w-full"
@@ -213,6 +251,21 @@ export function SermonCard({
                     <><Pause className="h-4 w-4 mr-2" /> Pause</>
                   ) : (
                     <><Play className="h-4 w-4 mr-2" /> Spill av</>
+                  )}
+                </Button>
+                <Button 
+                  onClick={handleShareClick}
+                  variant="outline"
+                  className="w-full"
+                  disabled={isSharing || shareSuccess}
+                  data-testid={`button-share-${sermon.id}`}
+                >
+                  {shareSuccess ? (
+                    <><Check className="h-4 w-4 mr-2 text-green-600" /> Kopiert!</>
+                  ) : isSharing ? (
+                    <><div className="h-4 w-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" /> Kopierer...</>
+                  ) : (
+                    <><Share2 className="h-4 w-4 mr-2" /> Del</>
                   )}
                 </Button>
               </div>
