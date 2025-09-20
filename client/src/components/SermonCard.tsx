@@ -5,19 +5,19 @@ import { Badge } from "@/components/ui/badge";
 
 export interface Sermon {
   id: string;
-  title: string;
-  speaker: string;
-  date: string;
-  bibleText: string;
-  duration: string;
-  description?: string;
-  audioUrl: string;
+  speaker: string; // Contains hyperlink to audio in real data
+  date: string; // Can be empty
+  bibleBook: string; // e.g., "Matt", "Joh", "Rom"
+  bibleChapter: string; // e.g., "5", "10"
+  bibleVerses: string; // e.g., "27-30", "1-14"
+  språk: 'finsk' | 'svensk' | 'norsk' | 'engelsk'; // Exact terms from spreadsheet
+  tolk: string; // Interpreter name or "-"
+  tolkTilSpråk: string; // Language interpreted to
+  duration: string; // Format like "29:10", "1:02:34"
   sted: string; // Location where sermon was held
-  språk: 'no' | 'sv' | 'fi' | 'eng'; // Language abbreviations
-  tolk: string; // Interpreter (- if none)
-  interpreterName?: string; // Full name of interpreter (for detail view)
-  kilde: string; // Source
+  kilde: string; // Source: Kassett, CD, Minnepenn, Youtube, etc.
   annenInfo?: string; // Additional information
+  audioUrl?: string; // Will be extracted from hyperlink
 }
 
 interface SermonCardProps {
@@ -102,7 +102,7 @@ export function SermonCard({
             <div className="flex items-center gap-2 text-sm">
               <BookOpen className="h-3 w-3 text-muted-foreground" />
               <Badge variant="secondary" className="text-xs">
-                {sermon.bibleText}
+                {sermon.bibleBook} {sermon.bibleChapter}:{sermon.bibleVerses}
               </Badge>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -112,7 +112,7 @@ export function SermonCard({
               </div>
               <div className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                <span>Tolk: {sermon.tolk}</span>
+                <span>Tolk: {sermon.tolk === '-' ? '-' : `${sermon.tolk} → ${sermon.tolkTilSpråk}`}</span>
               </div>
             </div>
           </div>
@@ -152,10 +152,10 @@ export function SermonCard({
           {/* Expanded Details */}
           {isExpanded && (
             <div className="border-t pt-3 space-y-2 text-sm">
-              {sermon.interpreterName && sermon.tolk !== '-' && (
+              {sermon.tolk !== '-' && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tolk:</span>
-                  <span>{sermon.interpreterName}</span>
+                  <span>{sermon.tolk} → {sermon.tolkTilSpråk}</span>
                 </div>
               )}
               <div className="flex justify-between">

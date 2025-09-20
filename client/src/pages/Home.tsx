@@ -11,101 +11,101 @@ export default function Home() {
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Mock data - todo: remove mock functionality
+  // Mock data based on Google Sheets - will be replaced with API calls
   const allSermons: Sermon[] = [
     {
       id: '1',
-      title: 'Guds kjærlighet i våre liv',
-      speaker: 'Pastor Ola Nordmann',
-      date: '2024-01-15',
-      bibleText: '1 Johannes 4:7-21',
-      duration: '35:42',
-      description: 'En preken om hvordan Guds kjærlighet endrer våre liv og våre relasjoner til andre.',
-      audioUrl: '#',
-      sted: 'Betlehem Kirke',
-      språk: 'no',
-      tolk: 'sv',
-      interpreterName: 'Anna Svensson',
-      kilde: 'Kirkearkiv 2024',
-      annenInfo: 'Opptak fra søndagsgudstjeneste'
+      speaker: 'Heino Kouva',
+      date: '1967-05-14',
+      bibleBook: 'Matt',
+      bibleChapter: '5',
+      bibleVerses: '27-30',
+      språk: 'finsk',
+      tolk: 'Hans Sundberg',
+      tolkTilSpråk: 'svensk',
+      duration: '29:10',
+      sted: 'Bosund',
+      kilde: 'Kassett HF 616',
+      annenInfo: 'Pinseforsamling',
+      audioUrl: '#'
     },
     {
       id: '2',
-      title: 'Håpets kraft i vanskelige tider',
-      speaker: 'Pastor Kari Hansen',
+      speaker: 'Andreas Ventin',
       date: '',
-      bibleText: 'Romerne 15:13',
-      duration: '42:15',
-      description: 'Refleksjoner over hvordan vi kan finne håp og styrke gjennom Guds ord.',
-      audioUrl: '#',
-      sted: 'Salem Menighet',
-      språk: 'no',
-      tolk: '-',
-      kilde: 'Menighetens lydarkiv',
-      annenInfo: 'Spesielt fokus på Romerbrevet'
+      bibleBook: 'Luk',
+      bibleChapter: '10',
+      bibleVerses: '30-35',
+      språk: 'svensk',
+      tolk: 'Östen Tano',
+      tolkTilSpråk: 'finsk',
+      duration: '42:45',
+      sted: 'Svanstein',
+      kilde: 'Kassett',
+      audioUrl: '#'
     },
     {
       id: '3',
-      title: 'Tro og gjerninger',
-      speaker: 'Pastor Per Andersen',
-      date: '2024-01-08',
-      bibleText: 'Jakob 2:14-26',
-      duration: '38:30',
-      description: 'En undersøkelse av forholdet mellom tro og gode gjerninger i det kristne liv.',
-      audioUrl: '#',
-      sted: 'Filadelfia Oslo',
-      språk: 'no',
-      tolk: 'fi',
-      interpreterName: 'Matti Virtanen',
-      kilde: 'Filadelfia Opptak',
-      annenInfo: 'Del av prekenserie om Jakob'
+      speaker: 'Kåre Suhr',
+      date: '',
+      bibleBook: 'Jer',
+      bibleChapter: '31',
+      bibleVerses: '31-34',
+      språk: 'norsk',
+      tolk: '-',
+      tolkTilSpråk: '-',
+      duration: '17:04',
+      sted: 'Elvebakken',
+      kilde: 'Opptak i benken',
+      annenInfo: 'Litt dårlig lydkvalitet',
+      audioUrl: '#'
     },
     {
       id: '4',
-      title: 'Jesu oppstandelse - vårt håp',
-      speaker: 'Pastor Anne Olsen',
-      date: '2024-03-31',
-      bibleText: '1 Korinterbrev 15:12-22',
-      duration: '45:18',
-      description: 'En påskepreken om betydningen av Jesu oppstandelse for vårt daglige liv.',
-      audioUrl: '#',
-      sted: 'Kristkirken Bergen',
-      språk: 'no',
-      tolk: 'eng',
-      interpreterName: 'James Thompson',
-      kilde: 'Påskeopptak 2024',
-      annenInfo: 'Påskesøndag, særlig godt opptak'
+      speaker: 'Viktor Ylipää',
+      date: '24.03.1990',
+      bibleBook: 'Ef',
+      bibleChapter: '2',
+      bibleVerses: '11-22',
+      språk: 'finsk',
+      tolk: 'Harry Ylipää',
+      tolkTilSpråk: 'svensk',
+      duration: '59:58',
+      sted: 'Pajala',
+      kilde: 'Kassett HF 630',
+      annenInfo: 'Salme på slutten',
+      audioUrl: '#'
     },
     {
       id: '5',
-      title: 'Bønn som endrer',
-      speaker: 'Pastor Ola Nordmann',
-      date: 'invalid-date',
-      bibleText: 'Lukas 11:1-13',
-      duration: '33:25',
-      description: 'Om bønnens kraft og hvordan vi kan utvikle et dypere bønneliv.',
-      audioUrl: '#',
-      sted: 'Betlehem Kirke',
-      språk: 'no',
+      speaker: 'Alvin Holmgren',
+      date: '30.11.1997',
+      bibleBook: 'Joh',
+      bibleChapter: '1',
+      bibleVerses: '1-14',
+      språk: 'engelsk',
       tolk: '-',
-      kilde: 'Kirkearkiv 2023',
-      annenInfo: 'Bønneserie del 2'
+      tolkTilSpråk: '-',
+      duration: '44:46',
+      sted: 'Clatskanie, Oregon',
+      kilde: 'Kassett',
+      annenInfo: 'Innledningsbønn av Arne Nordahl og salme før preken. Preken begynner på ca 8:00',
+      audioUrl: '#'
     },
     {
       id: '6',
-      title: 'Nestekjærlighet i praksis',
-      speaker: 'Pastor Kari Hansen',
-      date: '2023-09-17',
-      bibleText: 'Matteus 22:37-39',
-      duration: '39:12',
-      description: 'Praktiske veier til å leve ut nestekjærligheten i hverdagen.',
-      audioUrl: '#',
-      sted: 'Salem Menighet',
-      språk: 'sv',
-      tolk: 'no',
-      interpreterName: 'Ingrid Larsen',
-      kilde: 'Menighetens lydarkiv',
-      annenInfo: 'Preket på svensk med norsk tolking'
+      speaker: 'Henry Baardsen',
+      date: '16.05.2021',
+      bibleBook: 'Joh',
+      bibleChapter: '3',
+      bibleVerses: '16-21',
+      språk: 'norsk',
+      tolk: '-',
+      tolkTilSpråk: '-',
+      duration: '38:41',
+      sted: 'Elvebakken',
+      kilde: 'Youtube',
+      audioUrl: '#'
     }
   ];
 
@@ -124,11 +124,12 @@ export default function Home() {
     return allSermons.filter(sermon => {
       // Text search
       const searchLower = searchQuery.toLowerCase();
+      const bibleText = `${sermon.bibleBook} ${sermon.bibleChapter}:${sermon.bibleVerses}`;
       const matchesSearch = !searchQuery || 
-        sermon.title.toLowerCase().includes(searchLower) ||
         sermon.speaker.toLowerCase().includes(searchLower) ||
-        sermon.bibleText.toLowerCase().includes(searchLower) ||
-        sermon.description?.toLowerCase().includes(searchLower);
+        bibleText.toLowerCase().includes(searchLower) ||
+        sermon.bibleBook.toLowerCase().includes(searchLower) ||
+        sermon.annenInfo?.toLowerCase().includes(searchLower);
 
       // Speaker filter
       const matchesSpeaker = selectedSpeakers.length === 0 || 
@@ -152,7 +153,7 @@ export default function Home() {
       setCurrentSermon(sermon);
       setIsPlaying(true);
     }
-    console.log('Play/pause triggered for:', sermon.title);
+    console.log('Play/pause triggered for:', sermon.speaker);
   };
 
   const handlePlayerPlayPause = () => {
@@ -164,6 +165,7 @@ export default function Home() {
     setCurrentSermon(null);
     setIsPlaying(false);
     console.log('Player closed');
+    setIsPlaying(false);
   };
 
   return (
