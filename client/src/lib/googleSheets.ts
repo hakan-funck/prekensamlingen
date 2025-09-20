@@ -36,6 +36,20 @@ export function convertGoogleDriveUrl(shareUrl: string): string {
   return shareUrl;
 }
 
+// Extract book from "Book Chapter" format (e.g., "Joh 16" -> "Joh")
+function extractBookFromReference(bookChapter: string): string {
+  if (!bookChapter) return '';
+  const match = bookChapter.match(/^([^\d\s]+)/);
+  return match ? match[1].trim() : bookChapter;
+}
+
+// Extract chapter from "Book Chapter" format (e.g., "Joh 16" -> "16")
+function extractChapterFromReference(bookChapter: string): string {
+  if (!bookChapter) return '';
+  const match = bookChapter.match(/([\d,\-]+)\s*$/);
+  return match ? match[1].trim() : '';
+}
+
 // Convert language name to code
 export function convertLanguageToCode(lang: string): 'fi' | 'sv' | 'no' | 'en' | '-' {
   if (!lang || lang.trim() === '' || lang === '-') return '-';
@@ -66,25 +80,27 @@ export function convertLanguageToCode(lang: string): 'fi' | 'sv' | 'no' | 'en' |
 // Parse CSV row to sermon data
 export function parseSermonRow(row: string[], index: number): RawSermonData | null {
   // Skip first 4 rows (header/metadata) and empty rows - data starts from row 5 (index 4)
-  if (index < 4 || !row || row.length < 12) {
+  if (index < 4 || !row || row.length < 10) {
     return null;
   }
   
-  // New column mapping with Audio URL in column B
+  // CSV parsing successful - data starts from row 5
+  
+  // Corrected column mapping after adding Audio URL in column B
   return {
     speaker: row[0]?.trim() || '', // A: Speaker
     audioUrl: convertGoogleDriveUrl(row[1]?.trim() || ''), // B: Audio URL
-    date: row[2]?.trim() || '', // C: Date (was B)
-    bibleBook: row[3]?.trim() || '', // D: Bible Book (was C)
-    bibleChapter: row[4]?.trim() || '', // E: Bible Chapter (was D)
-    bibleVerses: row[5]?.trim() || '', // F: Bible Verses (was E)
-    språk: convertLanguageToCode(row[6]?.trim() || ''), // G: Language (was F)
-    tolk: row[7]?.trim() || '-', // H: Interpreter (was G)
-    tolkTilSpråk: convertLanguageToCode(row[8]?.trim() || ''), // I: Interpreter Lang (was H)
-    duration: row[9]?.trim() || '', // J: Duration (was I)
-    sted: row[10]?.trim() || '', // K: Location (was J)
-    kilde: row[11]?.trim() || '', // L: Source (was K)
-    annenInfo: row[12]?.trim() || undefined, // M: Additional Info (was L)
+    date: row[2]?.trim() || '', // C: Date
+    bibleBook: extractBookFromReference(row[3]?.trim() || ''), // D: Extract book from "Joh 16"
+    bibleChapter: extractChapterFromReference(row[3]?.trim() || ''), // D: Extract chapter from "Joh 16"
+    bibleVerses: row[4]?.trim() || '', // E: Bible verses (e.g., "7-15")
+    språk: convertLanguageToCode(row[5]?.trim() || ''), // F: Language of sermon
+    tolk: row[6]?.trim() || '-', // G: Interpreter
+    tolkTilSpråk: convertLanguageToCode(row[7]?.trim() || ''), // H: Language of interpreter
+    duration: row[8]?.trim() || '', // I: Length of sermon
+    sted: row[9]?.trim() || '', // J: Location
+    kilde: row[11]?.trim() || '', // L: Source
+    annenInfo: row[12]?.trim() || undefined, // M: Additional information
   };
 }
 
@@ -137,6 +153,8 @@ export async function fetchSermonsFromSheet(spreadsheetId: string, limit?: numbe
     return limit ? sermons.slice(0, limit) : sermons;
   } catch (error) {
     console.error('Error fetching sermons from sheet:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     throw error;
   }
 }
