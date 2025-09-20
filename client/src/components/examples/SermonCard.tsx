@@ -12,7 +12,13 @@ export default function SermonCardExample() {
     bibleText: '1 Johannes 4:7-21',
     duration: '35:42',
     description: 'En preken om hvordan Guds kjærlighet endrer våre liv og våre relasjoner til andre.',
-    audioUrl: '#'
+    audioUrl: '#',
+    sted: 'Betlehem Kirke',
+    språk: 'no',
+    tolk: 'sv',
+    interpreterName: 'Anna Svensson',
+    kilde: 'Kirkearkiv 2024',
+    annenInfo: 'Opptak fra søndagsgudstjeneste'
   };
 
   const handlePlayPause = () => {
@@ -26,6 +32,8 @@ export default function SermonCardExample() {
         sermon={sermon}
         isPlaying={isPlaying}
         onPlayPause={handlePlayPause}
+        isExpanded={false}
+        onToggleExpand={() => console.log('Toggle expand clicked')}
       />
     </div>
   );

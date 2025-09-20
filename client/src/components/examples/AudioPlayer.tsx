@@ -14,7 +14,12 @@ export default function AudioPlayerExample() {
     date: '2024-01-20',
     bibleText: 'Romerne 15:13',
     duration: '42:15',
-    audioUrl: '#'
+    audioUrl: '#',
+    sted: 'Salem Menighet',
+    språk: 'no',
+    tolk: '-',
+    kilde: 'Menighetens lydarkiv',
+    annenInfo: 'Spesielt fokus på Romerbrevet'
   };
 
   const startPlaying = () => {

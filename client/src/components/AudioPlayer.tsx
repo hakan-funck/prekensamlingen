@@ -1,8 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Sermon } from "./SermonCard";
 
 interface AudioPlayerProps {
@@ -17,6 +26,7 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState('1');
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -45,6 +55,13 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
       audio.pause();
     }
   }, [isPlaying]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.playbackRate = parseFloat(playbackRate);
+    }
+  }, [playbackRate]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -160,6 +177,33 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
             {formatTime(duration)}
           </span>
         </div>
+
+        {/* Playback Speed */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              data-testid="button-playback-speed"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Avspillingshastighet</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup 
+              value={playbackRate} 
+              onValueChange={setPlaybackRate}
+            >
+              <DropdownMenuRadioItem value="0.75">0.75x</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="1">1x (Normal)</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="1.25">1.25x</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="1.5">1.5x</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="2">2x</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Volume */}
         <div className="flex items-center gap-2">

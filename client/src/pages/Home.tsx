@@ -21,7 +21,13 @@ export default function Home() {
       bibleText: '1 Johannes 4:7-21',
       duration: '35:42',
       description: 'En preken om hvordan Guds kjærlighet endrer våre liv og våre relasjoner til andre.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Betlehem Kirke',
+      språk: 'no',
+      tolk: 'sv',
+      interpreterName: 'Anna Svensson',
+      kilde: 'Kirkearkiv 2024',
+      annenInfo: 'Opptak fra søndagsgudstjeneste'
     },
     {
       id: '2',
@@ -31,7 +37,12 @@ export default function Home() {
       bibleText: 'Romerne 15:13',
       duration: '42:15',
       description: 'Refleksjoner over hvordan vi kan finne håp og styrke gjennom Guds ord.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Salem Menighet',
+      språk: 'no',
+      tolk: '-',
+      kilde: 'Menighetens lydarkiv',
+      annenInfo: 'Spesielt fokus på Romerbrevet'
     },
     {
       id: '3',
@@ -41,7 +52,13 @@ export default function Home() {
       bibleText: 'Jakob 2:14-26',
       duration: '38:30',
       description: 'En undersøkelse av forholdet mellom tro og gode gjerninger i det kristne liv.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Filadelfia Oslo',
+      språk: 'no',
+      tolk: 'fi',
+      interpreterName: 'Matti Virtanen',
+      kilde: 'Filadelfia Opptak',
+      annenInfo: 'Del av prekenserie om Jakob'
     },
     {
       id: '4',
@@ -51,7 +68,13 @@ export default function Home() {
       bibleText: '1 Korinterbrev 15:12-22',
       duration: '45:18',
       description: 'En påskepreken om betydningen av Jesu oppstandelse for vårt daglige liv.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Kristkirken Bergen',
+      språk: 'no',
+      tolk: 'eng',
+      interpreterName: 'James Thompson',
+      kilde: 'Påskeopptak 2024',
+      annenInfo: 'Påskesøndag, særlig godt opptak'
     },
     {
       id: '5',
@@ -61,7 +84,12 @@ export default function Home() {
       bibleText: 'Lukas 11:1-13',
       duration: '33:25',
       description: 'Om bønnens kraft og hvordan vi kan utvikle et dypere bønneliv.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Betlehem Kirke',
+      språk: 'no',
+      tolk: '-',
+      kilde: 'Kirkearkiv 2023',
+      annenInfo: 'Bønneserie del 2'
     },
     {
       id: '6',
@@ -71,7 +99,13 @@ export default function Home() {
       bibleText: 'Matteus 22:37-39',
       duration: '39:12',
       description: 'Praktiske veier til å leve ut nestekjærligheten i hverdagen.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Salem Menighet',
+      språk: 'sv',
+      tolk: 'no',
+      interpreterName: 'Ingrid Larsen',
+      kilde: 'Menighetens lydarkiv',
+      annenInfo: 'Preket på svensk med norsk tolking'
     }
   ];
 

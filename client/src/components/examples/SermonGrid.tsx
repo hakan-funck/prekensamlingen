@@ -16,7 +16,13 @@ export default function SermonGridExample() {
       bibleText: '1 Johannes 4:7-21',
       duration: '35:42',
       description: 'En preken om hvordan Guds kjærlighet endrer våre liv og våre relasjoner til andre.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Betlehem Kirke',
+      språk: 'no',
+      tolk: 'sv',
+      interpreterName: 'Anna Svensson',
+      kilde: 'Kirkearkiv 2024',
+      annenInfo: 'Opptak fra søndagsgudstjeneste'
     },
     {
       id: '2',
@@ -26,7 +32,12 @@ export default function SermonGridExample() {
       bibleText: 'Romerne 15:13',
       duration: '42:15',
       description: 'Refleksjoner over hvordan vi kan finne håp og styrke gjennom Guds ord.',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Salem Menighet',
+      språk: 'no',
+      tolk: '-',
+      kilde: 'Menighetens lydarkiv',
+      annenInfo: 'Spesielt fokus på Romerbrevet'
     },
     {
       id: '3',
@@ -35,7 +46,13 @@ export default function SermonGridExample() {
       date: '2024-01-08',
       bibleText: 'Jakob 2:14-26',
       duration: '38:30',
-      audioUrl: '#'
+      audioUrl: '#',
+      sted: 'Filadelfia Oslo',
+      språk: 'no',
+      tolk: 'fi',
+      interpreterName: 'Matti Virtanen',
+      kilde: 'Filadelfia Opptak',
+      annenInfo: 'Del av prekenserie om Jakob'
     }
   ];
 

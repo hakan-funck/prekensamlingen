@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SermonCard, type Sermon } from "./SermonCard";
 
 interface SermonGridProps {
@@ -8,6 +9,20 @@ interface SermonGridProps {
 }
 
 export function SermonGrid({ sermons, currentSermon, isPlaying, onPlayPause }: SermonGridProps) {
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const handleToggleExpand = (sermonId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sermonId)) {
+        newSet.delete(sermonId);
+      } else {
+        newSet.add(sermonId);
+      }
+      return newSet;
+    });
+  };
+
   if (sermons.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -31,6 +46,8 @@ export function SermonGrid({ sermons, currentSermon, isPlaying, onPlayPause }: S
           sermon={sermon}
           isPlaying={currentSermon?.id === sermon.id && isPlaying}
           onPlayPause={onPlayPause}
+          isExpanded={expandedCards.has(sermon.id)}
+          onToggleExpand={() => handleToggleExpand(sermon.id)}
         />
       ))}
     </div>
