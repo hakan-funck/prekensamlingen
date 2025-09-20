@@ -68,9 +68,6 @@ export function SermonCard({
             <h3 className="font-serif text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
               {sermon.speaker}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-              {sermon.title}
-            </p>
           </div>
           <Button
             size="icon"
