@@ -127,7 +127,14 @@ export default function Home() {
 
   // Extract unique speakers, years, and bible books
   const speakers = useMemo(() => {
-    return Array.from(new Set(allSermons.map(sermon => sermon.speaker))).sort((a, b) => a.localeCompare(b, 'nb-NO'));
+    const uniqueSpeakers = Array.from(
+      new Set(
+        allSermons
+          .map(sermon => sermon.speaker)
+          .filter(speaker => speaker && speaker.trim() !== '')
+      )
+    );
+    return uniqueSpeakers.sort((a, b) => a.localeCompare(b, 'nb-NO'));
   }, [allSermons]);
 
   const interpreters = useMemo(() => {
@@ -181,7 +188,13 @@ export default function Home() {
   }, [allSermons]);
 
   const bibleBooks = useMemo(() => {
-    const uniqueBooks = Array.from(new Set(allSermons.map(sermon => sermon.bibleBook)));
+    const uniqueBooks = Array.from(
+      new Set(
+        allSermons
+          .map(sermon => sermon.bibleBook)
+          .filter(bibleBook => bibleBook && bibleBook.trim() !== '')
+      )
+    );
     return sortBooksInBiblicalOrder(uniqueBooks);
   }, [allSermons]);
 
