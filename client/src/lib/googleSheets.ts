@@ -36,11 +36,25 @@ export function convertGoogleDriveUrl(shareUrl: string): string {
   return shareUrl;
 }
 
-// Extract book from "Book Chapter" format (e.g., "Joh 16" -> "Joh")
+// Extract book from "Book Chapter" format (e.g., "Joh 16" -> "Joh", "1 Mos 50" -> "1Mos")
 function extractBookFromReference(bookChapter: string): string {
   if (!bookChapter) return '';
-  const match = bookChapter.match(/^([^\d\s]+)/);
-  return match ? match[1].trim() : bookChapter;
+  
+  const trimmed = bookChapter.trim();
+  
+  // Handle numbered books: "1 Mos 50", "1Mos 50", "1. Mos 50", "3 Joh 1", etc.
+  const numberedMatch = trimmed.match(/^(\d+)\s*\.?\s*([A-Za-zÆØÅæøå]+)/);
+  if (numberedMatch) {
+    return numberedMatch[1] + numberedMatch[2]; // e.g., "1" + "Mos" = "1Mos"
+  }
+  
+  // Handle regular books: "Joh 16", "Matt 5", "Matt. 5", "Åp 1", etc.
+  const regularMatch = trimmed.match(/^([A-Za-zÆØÅæøå]+)/);
+  if (regularMatch) {
+    return regularMatch[1]; // e.g., "Joh", "Matt", "Åp"
+  }
+  
+  return trimmed;
 }
 
 // Extract chapter from "Book Chapter" format (e.g., "Joh 16" -> "16")
