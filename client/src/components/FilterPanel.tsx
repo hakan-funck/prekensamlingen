@@ -19,6 +19,9 @@ interface FilterPanelProps {
   years: number[];
   selectedYears: number[];
   onYearsChange: (years: number[]) => void;
+  bibleBooks: string[];
+  selectedBibleBooks: string[];
+  onBibleBooksChange: (bibleBooks: string[]) => void;
   activeFiltersCount: number;
 }
 
@@ -29,6 +32,9 @@ export function FilterPanel({
   years,
   selectedYears,
   onYearsChange,
+  bibleBooks,
+  selectedBibleBooks,
+  onBibleBooksChange,
   activeFiltersCount,
 }: FilterPanelProps) {
   const handleSpeakerToggle = (speaker: string) => {
@@ -47,9 +53,18 @@ export function FilterPanel({
     }
   };
 
+  const handleBibleBookToggle = (bibleBook: string) => {
+    if (selectedBibleBooks.includes(bibleBook)) {
+      onBibleBooksChange(selectedBibleBooks.filter(b => b !== bibleBook));
+    } else {
+      onBibleBooksChange([...selectedBibleBooks, bibleBook]);
+    }
+  };
+
   const clearAllFilters = () => {
     onSpeakersChange([]);
     onYearsChange([]);
+    onBibleBooksChange([]);
   };
 
   return (
@@ -69,7 +84,7 @@ export function FilterPanel({
         <SheetHeader>
           <SheetTitle>Filtrer prekener</SheetTitle>
           <SheetDescription>
-            Velg taler og år for å filtrere prekenene
+            Velg taler, bibelbøker og år for å filtrere prekenene
           </SheetDescription>
         </SheetHeader>
         <div className="space-y-6 mt-6">
@@ -93,6 +108,32 @@ export function FilterPanel({
                     className="text-sm cursor-pointer"
                   >
                     {speaker}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bible Books Filter */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-medium">Bibelbok</Label>
+            </div>
+            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+              {bibleBooks.map((bibleBook) => (
+                <div key={bibleBook} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`bible-book-${bibleBook}`}
+                    checked={selectedBibleBooks.includes(bibleBook)}
+                    onCheckedChange={() => handleBibleBookToggle(bibleBook)}
+                    data-testid={`checkbox-bible-book-${bibleBook}`}
+                  />
+                  <Label
+                    htmlFor={`bible-book-${bibleBook}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {bibleBook}
                   </Label>
                 </div>
               ))}

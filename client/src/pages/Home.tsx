@@ -8,6 +8,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpeakers, setSelectedSpeakers] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [selectedBibleBooks, setSelectedBibleBooks] = useState<string[]>([]);
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -109,7 +110,7 @@ export default function Home() {
     }
   ];
 
-  // Extract unique speakers and years
+  // Extract unique speakers, years, and bible books
   const speakers = useMemo(() => {
     return Array.from(new Set(allSermons.map(sermon => sermon.speaker))).sort();
   }, [allSermons]);
@@ -117,6 +118,10 @@ export default function Home() {
   const years = useMemo(() => {
     const yearSet = new Set(allSermons.map(sermon => new Date(sermon.date).getFullYear()));
     return Array.from(yearSet).sort((a, b) => b - a);
+  }, [allSermons]);
+
+  const bibleBooks = useMemo(() => {
+    return Array.from(new Set(allSermons.map(sermon => sermon.bibleBook))).sort();
   }, [allSermons]);
 
   // Filter sermons based on search and filters
@@ -140,11 +145,15 @@ export default function Home() {
       const matchesYear = selectedYears.length === 0 || 
         selectedYears.includes(sermonYear);
 
-      return matchesSearch && matchesSpeaker && matchesYear;
-    });
-  }, [allSermons, searchQuery, selectedSpeakers, selectedYears]);
+      // Bible book filter
+      const matchesBibleBook = selectedBibleBooks.length === 0 || 
+        selectedBibleBooks.includes(sermon.bibleBook);
 
-  const activeFiltersCount = selectedSpeakers.length + selectedYears.length;
+      return matchesSearch && matchesSpeaker && matchesYear && matchesBibleBook;
+    });
+  }, [allSermons, searchQuery, selectedSpeakers, selectedYears, selectedBibleBooks]);
+
+  const activeFiltersCount = selectedSpeakers.length + selectedYears.length + selectedBibleBooks.length;
 
   const handlePlayPause = (sermon: Sermon) => {
     if (currentSermon?.id === sermon.id) {
@@ -179,6 +188,9 @@ export default function Home() {
         years={years}
         selectedYears={selectedYears}
         onYearsChange={setSelectedYears}
+        bibleBooks={bibleBooks}
+        selectedBibleBooks={selectedBibleBooks}
+        onBibleBooksChange={setSelectedBibleBooks}
         activeFiltersCount={activeFiltersCount}
       />
       
