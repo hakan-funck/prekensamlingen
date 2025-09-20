@@ -31,8 +31,8 @@ export default function Home() {
         // Your spreadsheet ID
         const spreadsheetId = '1mKk16Z1sJ--Dj5GQCVOJE7erRClYAsVUaSiql_RsZfg';
         
-        // Fetch first 96 sermons (rows 5-100) as requested
-        const rawSermons = await fetchSermonsFromSheet(spreadsheetId, 96);
+        // Fetch first 175 sermons (rows 5-179) as requested
+        const rawSermons = await fetchSermonsFromSheet(spreadsheetId, 175);
         
         // Convert to Sermon format
         const sermons: Sermon[] = rawSermons.map((raw, index) => ({
