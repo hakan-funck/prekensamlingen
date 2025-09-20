@@ -1,7 +1,8 @@
-import { Play, Pause, Calendar, User, BookOpen, Clock, MapPin, Globe, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Play, Pause, Calendar, User, BookOpen, Clock, MapPin, Globe, Users, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { generateBibleUrlFromReference } from "@/lib/bibleUrl";
 
 export interface Sermon {
   id: string;
@@ -78,6 +79,18 @@ export function SermonCard({
     onPlayPause(sermon);
   };
 
+  const handleBibleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const bibleUrl = generateBibleUrlFromReference(
+      sermon.bibleBook,
+      sermon.bibleChapter,
+      sermon.bibleVerses
+    );
+    if (bibleUrl) {
+      window.open(bibleUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <Card 
       className="hover-elevate cursor-pointer group" 
@@ -114,8 +127,16 @@ export function SermonCard({
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-sm">
               <BookOpen className="h-3 w-3 text-muted-foreground" />
-              <Badge variant="secondary" className="text-xs">
-                {sermon.bibleBook} {sermon.bibleChapter}:{sermon.bibleVerses}
+              <Badge 
+                variant="secondary" 
+                className="text-xs cursor-pointer hover:bg-primary/20 transition-colors group/bible"
+                onClick={handleBibleClick}
+                data-testid={`badge-bible-${sermon.id}`}
+              >
+                <span className="group-hover/bible:text-primary transition-colors">
+                  {sermon.bibleBook} {sermon.bibleChapter}:{sermon.bibleVerses}
+                </span>
+                <ExternalLink className="h-2 w-2 ml-1 opacity-0 group-hover/bible:opacity-100 transition-opacity" />
               </Badge>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
