@@ -10,9 +10,9 @@ export interface Sermon {
   bibleBook: string; // e.g., "Matt", "Joh", "Rom"
   bibleChapter: string; // e.g., "5", "10"
   bibleVerses: string; // e.g., "27-30", "1-14"
-  språk: 'finsk' | 'svensk' | 'norsk' | 'engelsk'; // Exact terms from spreadsheet
+  språk: 'fi' | 'sv' | 'no' | 'en'; // Language codes
   tolk: string; // Interpreter name or "-"
-  tolkTilSpråk: string; // Language interpreted to
+  tolkTilSpråk: 'fi' | 'sv' | 'no' | 'en' | '-'; // Language interpreted to
   duration: string; // Format like "29:10", "1:02:34"
   sted: string; // Location where sermon was held
   kilde: string; // Source: Kassett, CD, Minnepenn, Youtube, etc.
@@ -112,7 +112,7 @@ export function SermonCard({
               </div>
               <div className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                <span>Tolk: {sermon.tolk === '-' ? '-' : `${sermon.tolk} → ${sermon.tolkTilSpråk}`}</span>
+                <span>Tolk: {sermon.tolk === '-' ? '-' : sermon.tolkTilSpråk}</span>
               </div>
             </div>
           </div>
@@ -155,7 +155,7 @@ export function SermonCard({
               {sermon.tolk !== '-' && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tolk:</span>
-                  <span>{sermon.tolk} → {sermon.tolkTilSpråk}</span>
+                  <span>{sermon.tolkTilSpråk}</span>
                 </div>
               )}
               <div className="flex justify-between">
