@@ -40,7 +40,20 @@ export function SermonCard({
       return '-';
     }
     
-    const date = new Date(dateString);
+    const trimmed = dateString.trim();
+    
+    // If it's just a year (4 digits), return as-is
+    if (/^\d{4}$/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // If it's dd.mm.yyyy format, return as-is
+    if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Try to parse other formats (ISO dates, etc.)
+    const date = new Date(trimmed);
     
     // Check if date is invalid
     if (isNaN(date.getTime())) {

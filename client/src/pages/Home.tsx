@@ -117,7 +117,38 @@ export default function Home() {
   }, [allSermons]);
 
   const years = useMemo(() => {
-    const yearSet = new Set(allSermons.map(sermon => new Date(sermon.date).getFullYear()));
+    const getSermonYear = (dateString: string): number | null => {
+      if (!dateString || dateString.trim() === '') {
+        return null;
+      }
+      
+      const trimmed = dateString.trim();
+      
+      // If it's just a year (4 digits), return it directly
+      if (/^\d{4}$/.test(trimmed)) {
+        return parseInt(trimmed, 10);
+      }
+      
+      // If it's dd.mm.yyyy format, extract year
+      const ddmmyyyy = trimmed.match(/^\d{1,2}\.\d{1,2}\.(\d{4})$/);
+      if (ddmmyyyy) {
+        return parseInt(ddmmyyyy[1], 10);
+      }
+      
+      // Try to parse as date and extract year
+      const date = new Date(trimmed);
+      if (!isNaN(date.getTime())) {
+        return date.getFullYear();
+      }
+      
+      return null;
+    };
+    
+    const yearSet = new Set(
+      allSermons
+        .map(sermon => getSermonYear(sermon.date))
+        .filter((year): year is number => year !== null)
+    );
     return Array.from(yearSet).sort((a, b) => b - a);
   }, [allSermons]);
 
@@ -143,9 +174,36 @@ export default function Home() {
         selectedSpeakers.includes(sermon.speaker);
 
       // Year filter
-      const sermonYear = new Date(sermon.date).getFullYear();
+      const getSermonYear = (dateString: string): number | null => {
+        if (!dateString || dateString.trim() === '') {
+          return null;
+        }
+        
+        const trimmed = dateString.trim();
+        
+        // If it's just a year (4 digits), return it directly
+        if (/^\d{4}$/.test(trimmed)) {
+          return parseInt(trimmed, 10);
+        }
+        
+        // If it's dd.mm.yyyy format, extract year
+        const ddmmyyyy = trimmed.match(/^\d{1,2}\.\d{1,2}\.(\d{4})$/);
+        if (ddmmyyyy) {
+          return parseInt(ddmmyyyy[1], 10);
+        }
+        
+        // Try to parse as date and extract year
+        const date = new Date(trimmed);
+        if (!isNaN(date.getTime())) {
+          return date.getFullYear();
+        }
+        
+        return null;
+      };
+      
+      const sermonYear = getSermonYear(sermon.date);
       const matchesYear = selectedYears.length === 0 || 
-        selectedYears.includes(sermonYear);
+        (sermonYear !== null && selectedYears.includes(sermonYear));
 
       // Bible book filter
       const matchesBibleBook = !selectedBibleBook || 
