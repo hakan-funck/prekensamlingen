@@ -204,17 +204,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           Key: objectKey,
         };
         
-        // Handle Range requests for R2
-        if (req.headers.range) {
-          getObjectParams.Range = req.headers.range;
-          console.log('Forwarding Range header to R2:', req.headers.range);
-        }
+        // TEMPORARY: Disable Range support to debug browser disconnect
+        // if (req.headers.range) {
+        //   getObjectParams.Range = req.headers.range;
+        //   console.log('Forwarding Range header to R2:', req.headers.range);
+        // }
+        console.log('TEMP DEBUG: Ignoring Range request, serving full file');
         
         const command = new GetObjectCommand(getObjectParams);
         const r2Response = await r2Client.send(command);
         
-        // Set proper response status
-        const statusCode = req.headers.range ? 206 : 200;
+        // Always return 200 OK for debugging
+        const statusCode = 200;
         res.status(statusCode);
         
         // Set headers from R2 response
@@ -222,9 +223,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (r2Response.ContentLength) {
           res.setHeader('Content-Length', r2Response.ContentLength.toString());
         }
-        if (r2Response.ContentRange) {
-          res.setHeader('Content-Range', r2Response.ContentRange);
-        }
+        // TEMP DEBUG: Skip Content-Range header since we're not using ranges
+        // if (r2Response.ContentRange) {
+        //   res.setHeader('Content-Range', r2Response.ContentRange);
+        // }
         res.setHeader('Accept-Ranges', 'bytes');
         
         // CORS headers
@@ -237,6 +239,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.setHeader('Cache-Control', 'public, max-age=3600');
         
         console.log('R2 Response - Status:', statusCode, 'Content-Length:', r2Response.ContentLength);
+        console.log('R2 Response Headers:');
+        console.log('  Content-Type:', r2Response.ContentType);
+        console.log('  Content-Range:', r2Response.ContentRange);
+        console.log('Headers being sent to browser:');
+        console.log('  Content-Type:', res.getHeader('Content-Type'));
+        console.log('  Content-Length:', res.getHeader('Content-Length'));
+        console.log('  Content-Range:', res.getHeader('Content-Range'));
+        console.log('  Accept-Ranges:', res.getHeader('Accept-Ranges'));
+        console.log('  CORS Origin:', res.getHeader('Access-Control-Allow-Origin'));
         
         // Stream the R2 object body with robust error handling
         if (r2Response.Body) {
