@@ -15,13 +15,20 @@ const r2Client = new S3Client({
 
 // Helper function to detect URL type
 function getAudioUrlType(url: string): 'google-drive' | 'r2' | 'unknown' {
-  if (url.includes('drive.google.com') || url.match(/^[a-zA-Z0-9_-]{28,}$/)) {
+  // Decode URL first to handle %20 etc
+  const decodedUrl = decodeURIComponent(url);
+  
+  // Google Drive URLs or IDs: exactly 28-33 chars, only letters, numbers, hyphens, underscores
+  if (decodedUrl.includes('drive.google.com') || decodedUrl.match(/^[a-zA-Z0-9_-]{28,33}$/)) {
     return 'google-drive';
   }
-  if (url.includes('.r2.cloudflarestorage.com') || url.startsWith('r2://')) {
+  // R2 URLs: either direct r2:// protocol or contains R2 domain or has file extension or spaces
+  if (decodedUrl.includes('.r2.cloudflarestorage.com') || decodedUrl.startsWith('r2://') || 
+      decodedUrl.includes('.mp3') || decodedUrl.includes('/') || decodedUrl.includes(' ')) {
     return 'r2';
   }
-  return 'unknown';
+  // Default to R2 for anything not clearly Google Drive
+  return 'r2';
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -48,27 +55,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Hybrid audio proxy endpoint (Google Drive + R2)
-  app.get('/api/audio/:fileId', async (req, res) => {
-    const { fileId } = req.params;
+  // HEAD endpoint for audio files (no body streaming)
+  app.head('/api/audio/:key(*)', async (req, res) => {
+    const fileKey = req.params.key;
     
-    if (!fileId) {
-      return res.status(400).json({ error: 'File ID is required' });
+    if (!fileKey) {
+      return res.status(400).json({ error: 'File key is required' });
     }
     
     try {
-      const urlType = getAudioUrlType(fileId);
-      console.log('Proxying audio request for:', fileId, 'Type:', urlType);
+      const urlType = getAudioUrlType(fileKey);
+      console.log('HEAD request for:', fileKey, 'Type:', urlType);
+      
+      if (urlType === 'r2' || urlType === 'unknown') {
+        // HEAD request to R2
+        let bucketName = 'prekensamlingen';
+        let objectKey = fileKey;
+        
+        if (fileKey.startsWith('r2://')) {
+          const parts = fileKey.replace('r2://', '').split('/');
+          bucketName = parts[0];
+          objectKey = parts.slice(1).join('/');
+        }
+        
+        const { HeadObjectCommand } = await import('@aws-sdk/client-s3');
+        const command = new HeadObjectCommand({
+          Bucket: bucketName,
+          Key: objectKey,
+        });
+        
+        const r2Response = await r2Client.send(command);
+        
+        // Set headers without body
+        res.setHeader('Content-Type', r2Response.ContentType || 'audio/mpeg');
+        res.setHeader('Content-Length', r2Response.ContentLength?.toString() || '0');
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Access-Control-Allow-Headers', 'Range');
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        
+        res.status(200).end();
+      } else {
+        // HEAD request to Google Drive using minimal range
+        let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileKey}`;
+        
+        const response = await fetch(googleDriveUrl, {
+          method: 'GET',
+          headers: {
+            'Range': 'bytes=0-0',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        
+        // Mirror headers without body
+        res.setHeader('Content-Type', response.headers.get('content-type') || 'audio/mpeg');
+        if (response.headers.get('content-range')) {
+          const contentRange = response.headers.get('content-range');
+          const totalSize = contentRange?.split('/')[1];
+          if (totalSize) res.setHeader('Content-Length', totalSize);
+        }
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Access-Control-Allow-Headers', 'Range');
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        
+        res.status(200).end();
+      }
+    } catch (error) {
+      console.error('HEAD request error:', error);
+      res.status(404).end();
+    }
+  });
+
+  // Hybrid audio proxy endpoint (Google Drive + R2)
+  app.get('/api/audio/:key(*)', async (req, res) => {
+    const fileKey = req.params.key;
+    
+    if (!fileKey) {
+      return res.status(400).json({ error: 'File key is required' });
+    }
+    
+    try {
+      const urlType = getAudioUrlType(fileKey);
+      console.log('Proxying audio request for:', fileKey, 'Type:', urlType);
       console.log('Request headers:', req.headers.range ? `Range: ${req.headers.range}` : 'No range header');
       
-      if (urlType === 'r2') {
+      if (urlType === 'r2' || urlType === 'unknown') {
         // Handle R2 URLs
         let bucketName = 'prekensamlingen';
-        let objectKey = fileId;
+        let objectKey = fileKey;
         
         // Parse R2 URLs: r2://bucket/key or direct key
-        if (fileId.startsWith('r2://')) {
-          const parts = fileId.replace('r2://', '').split('/');
+        if (fileKey.startsWith('r2://')) {
+          const parts = fileKey.replace('r2://', '').split('/');
           bucketName = parts[0];
           objectKey = parts.slice(1).join('/');
         }
@@ -117,14 +200,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Stream the R2 object body
         if (r2Response.Body) {
           const { pipeline } = await import('stream/promises');
-          const { Readable } = await import('stream');
           
           try {
-            const readable = Readable.fromWeb(r2Response.Body as any);
+            // R2Response.Body is already a Node.js readable stream
+            const readable = r2Response.Body as any;
             
             req.on('close', () => {
               console.log('Client disconnected, aborting R2 stream');
-              readable.destroy();
+              if (readable.destroy) {
+                readable.destroy();
+              }
             });
             
             await pipeline(readable, res);
@@ -144,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Handle Google Drive URLs (existing logic)
-      let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileKey}`;
       console.log('Google Drive URL:', googleDriveUrl);
       
       // Prepare headers to forward to Google Drive including Range
@@ -174,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const confirmMatch = htmlContent.match(/confirm=([^&"]+)/);
         if (confirmMatch) {
           const confirmToken = confirmMatch[1];
-          googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${confirmToken}`;
+          googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileKey}&confirm=${confirmToken}`;
           console.log('Retrying with confirm token:', confirmToken);
           
           // Retry with confirmation token
@@ -260,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
     } catch (error) {
-      console.error('Audio proxy error for fileId:', fileId);
+      console.error('Audio proxy error for fileKey:', fileKey);
       console.error('Error details:', error);
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       
@@ -268,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ 
           error: 'Internal server error', 
           message: error instanceof Error ? error.message : 'Unknown error',
-          fileId: fileId
+          fileKey: fileKey
         });
       }
     }
