@@ -332,7 +332,7 @@ export default function Home() {
         activeFiltersCount={activeFiltersCount}
       />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pt-32 xl:pt-24">
         <div className="mb-6">
           <h2 className="text-2xl font-serif font-semibold text-foreground mb-2">
             Prekensamlingen

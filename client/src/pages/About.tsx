@@ -22,7 +22,7 @@ export default function About() {
       </header>
 
       {/* Main content */}
-      <main className="container max-w-4xl mx-auto px-4 py-8">
+      <main className="container max-w-4xl mx-auto px-4 py-8 pt-20">
         <div className="space-y-8">
           
           {/* Introduction */}
