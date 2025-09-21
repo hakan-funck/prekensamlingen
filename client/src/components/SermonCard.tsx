@@ -139,7 +139,7 @@ export function SermonCard({
         {/* Speaker Name as Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-serif text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+            <h3 className="font-serif text-xl sm:text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
               {sermon.speaker}
             </h3>
           </div>
@@ -163,11 +163,11 @@ export function SermonCard({
         <div className="space-y-3">
           {/* Bible Text and Language Info */}
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <BookOpen className="h-3 w-3 text-muted-foreground" />
+            <div className="flex items-center gap-2 text-base sm:text-sm">
+              <BookOpen className="h-4 w-4 sm:h-3 sm:w-3 text-muted-foreground" />
               <Badge 
                 variant="secondary" 
-                className="text-xs cursor-pointer hover:bg-primary/20 transition-colors group/bible"
+                className="text-sm sm:text-xs cursor-pointer hover:bg-primary/20 transition-colors group/bible"
                 onClick={handleBibleClick}
                 data-testid={`badge-bible-${sermon.id}`}
               >
@@ -177,32 +177,32 @@ export function SermonCard({
                 <ExternalLink className="h-2 w-2 ml-1 opacity-0 group-hover/bible:opacity-100 transition-opacity" />
               </Badge>
             </div>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3 text-sm sm:text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
-                <Globe className="h-3 w-3" />
+                <Globe className="h-4 w-4 sm:h-3 sm:w-3" />
                 <span>Språk: {sermon.språk}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
+                <Users className="h-4 w-4 sm:h-3 sm:w-3" />
                 <span>Tolk: {sermon.tolk === '-' ? '-' : sermon.tolkTilSpråk}</span>
               </div>
             </div>
           </div>
 
           {/* Date, Location and Duration */}
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="flex items-center justify-between text-base sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
+                <Calendar className="h-4 w-4 sm:h-3 sm:w-3" />
                 <span>{formatDate(sermon.date)}</span>
               </div>
               <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
+                <MapPin className="h-4 w-4 sm:h-3 sm:w-3" />
                 <span>{sermon.sted}</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+              <Clock className="h-4 w-4 sm:h-3 sm:w-3" />
               <span>{sermon.duration}</span>
             </div>
           </div>
@@ -210,12 +210,12 @@ export function SermonCard({
           {/* Expand/Collapse Indicator */}
           {onToggleExpand && (
             <div className="flex items-center justify-center pt-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <div className="flex items-center gap-1 text-sm sm:text-xs text-muted-foreground hover:text-foreground transition-colors">
                 <span>{isExpanded ? 'Skjul detaljer' : 'Vis detaljer'}</span>
                 {isExpanded ? (
-                  <ChevronUp className="h-3 w-3" />
+                  <ChevronUp className="h-4 w-4 sm:h-3 sm:w-3" />
                 ) : (
-                  <ChevronDown className="h-3 w-3" />
+                  <ChevronDown className="h-4 w-4 sm:h-3 sm:w-3" />
                 )}
               </div>
             </div>
@@ -223,7 +223,7 @@ export function SermonCard({
 
           {/* Expanded Details */}
           {isExpanded && (
-            <div className="border-t pt-3 space-y-2 text-sm">
+            <div className="border-t pt-3 space-y-2 text-base sm:text-sm">
               {sermon.tolk !== '-' && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tolk:</span>
@@ -237,7 +237,7 @@ export function SermonCard({
               {sermon.annenInfo && (
                 <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground">Annen info:</span>
-                  <span className="text-xs text-muted-foreground">{sermon.annenInfo}</span>
+                  <span className="text-sm sm:text-xs text-muted-foreground">{sermon.annenInfo}</span>
                 </div>
               )}
               {/* Action buttons in expanded view */}
