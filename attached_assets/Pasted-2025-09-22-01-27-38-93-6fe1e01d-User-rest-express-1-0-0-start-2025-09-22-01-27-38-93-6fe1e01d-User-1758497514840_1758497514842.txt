@@ -1,0 +1,156 @@
+2025-09-22 01:27:38.93
+6fe1e01d
+User
+> rest-express@1.0.0 start
+2025-09-22 01:27:38.93
+6fe1e01d
+User
+> NODE_ENV=production node dist/index.js
+2025-09-22 01:27:40.41
+6fe1e01d
+User
+✅ R2 configuration validated
+2025-09-22 01:27:40.51
+6fe1e01d
+User
+11:27:40 PM [express] serving on port 5000
+2025-09-22 01:28:06.96
+6fe1e01d
+User
+Proxying audio request for: sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3 Type: r2
+2025-09-22 01:28:06.96
+6fe1e01d
+User
+Request headers: Range: bytes=0-
+2025-09-22 01:28:06.96
+6fe1e01d
+User
+Fetching from R2 bucket: prekensamlingen key: sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3
+2025-09-22 01:28:06.96
+6fe1e01d
+User
+TEMP DEBUG: Ignoring Range request, serving full file
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+R2 Response - Status: 200 Content-Length: 41047460
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+R2 Response Headers:
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+Content-Type: audio/mpeg
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+Content-Range: undefined
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+Headers being sent to browser:
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+Content-Type: audio/mpeg
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+Content-Length: 41047460
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+Content-Range: undefined
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+Accept-Ranges: bytes
+2025-09-22 01:28:07.27
+6fe1e01d
+User
+CORS Origin: *
+2025-09-22 01:28:07.96
+6fe1e01d
+User
+Client aborted R2 stream
+2025-09-22 01:28:07.96
+6fe1e01d
+User
+R2 pipeline error: Premature close
+2025-09-22 01:28:07.96
+6fe1e01d
+User
+R2 stream ended due to client disconnect - this is normal
+2025-09-22 01:28:23.40
+6fe1e01d
+User
+Proxying audio request for: sermons/2001-07-11_Paul_Snellman_Kllby_Joh_14.mp3 Type: r2
+2025-09-22 01:28:23.40
+6fe1e01d
+User
+Request headers: Range: bytes=0-
+2025-09-22 01:28:23.40
+6fe1e01d
+User
+Fetching from R2 bucket: prekensamlingen key: sermons/2001-07-11_Paul_Snellman_Kllby_Joh_14.mp3
+2025-09-22 01:28:23.40
+6fe1e01d
+User
+TEMP DEBUG: Ignoring Range request, serving full file
+2025-09-22 01:28:23.62
+6fe1e01d
+User
+R2 Response - Status: 200 Content-Length: 35562582
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+R2 Response Headers:
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+Content-Type: audio/mpeg
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+Content-Range: undefined
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+Headers being sent to browser:
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+Content-Type: audio/mpeg
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+Content-Length: 35562582
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+Content-Range: undefined
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+Accept-Ranges: bytes
+2025-09-22 01:28:23.63
+6fe1e01d
+User
+CORS Origin: *
+2025-09-22 01:28:24.35
+6fe1e01d
+User
+Client aborted R2 stream
+2025-09-22 01:28:24.35
+6fe1e01d
+User
+R2 pipeline error: Premature close
+2025-09-22 01:28:24.35
+6fe1e01d
+User
+R2 stream ended due to client disconnect - this is normal
+2025-09-22 01:31:03.08
+ad84b626
+System
+system: received signal terminated

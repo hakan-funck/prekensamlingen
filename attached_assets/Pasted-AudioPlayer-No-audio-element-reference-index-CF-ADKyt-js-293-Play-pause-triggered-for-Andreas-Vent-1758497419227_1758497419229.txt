@@ -1,0 +1,39 @@
+AudioPlayer: No audio element reference
+index-CF-ADKyt.js:293 Play/pause triggered for: Andreas Ventin
+index-CF-ADKyt.js:292 AudioPlayer: isPlaying changed to: true
+index-CF-ADKyt.js:292 AudioPlayer: Audio readyState: 0
+index-CF-ADKyt.js:292 AudioPlayer: Audio paused: true
+index-CF-ADKyt.js:292 AudioPlayer: Audio current time: 0
+index-CF-ADKyt.js:292 AudioPlayer: Audio not ready, waiting for canplay event
+index-CF-ADKyt.js:292 AudioPlayer: Audio load started for: Andreas Ventin
+index-CF-ADKyt.js:292 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3
+/api/audio/sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3:1  GET https://prekensamlingen.replit.app/api/audio/sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3 500 (Internal Server Error)Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio error event: Event {isTrusted: true, type: 'error', target: audio, currentTarget: audio, eventPhase: 2, …}
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio error details: MediaError {code: 4, message: 'MEDIA_ELEMENT_ERROR: Format error'}
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio network state: 3
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio ready state: 0
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:293 Play/pause triggered for: Paul Snellman
+index-CF-ADKyt.js:292 AudioPlayer: isPlaying changed to: true
+index-CF-ADKyt.js:292 AudioPlayer: Audio readyState: 0
+index-CF-ADKyt.js:292 AudioPlayer: Audio paused: true
+index-CF-ADKyt.js:292 AudioPlayer: Audio current time: 0
+index-CF-ADKyt.js:292 AudioPlayer: Audio not ready, waiting for canplay event
+index-CF-ADKyt.js:292 AudioPlayer: Audio load started for: Paul Snellman
+index-CF-ADKyt.js:292 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/sermons/2001-07-11_Paul_Snellman_Kllby_Joh_14.mp3
+/api/audio/sermons/2001-07-11_Paul_Snellman_Kllby_Joh_14.mp3:1  GET https://prekensamlingen.replit.app/api/audio/sermons/2001-07-11_Paul_Snellman_Kllby_Joh_14.mp3 500 (Internal Server Error)Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio error event: Event {isTrusted: true, type: 'error', target: audio, currentTarget: audio, eventPhase: 2, …}
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio error details: MediaError {code: 4, message: 'MEDIA_ELEMENT_ERROR: Format error'}
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/sermons/2001-07-11_Paul_Snellman_Kllby_Joh_14.mp3
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio network state: 3
+k @ index-CF-ADKyt.js:292Understand this error
+index-CF-ADKyt.js:292 AudioPlayer: Audio ready state: 0
+k @ index-CF-ADKyt.js:292Understand this error

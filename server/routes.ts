@@ -227,7 +227,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // if (r2Response.ContentRange) {
         //   res.setHeader('Content-Range', r2Response.ContentRange);
         // }
-        res.setHeader('Accept-Ranges', 'bytes');
+        // TEMP DEBUG: Remove Accept-Ranges to prevent browser from sending Range requests
+        // res.setHeader('Accept-Ranges', 'bytes');
         
         // CORS headers
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -248,6 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('  Content-Range:', res.getHeader('Content-Range'));
         console.log('  Accept-Ranges:', res.getHeader('Accept-Ranges'));
         console.log('  CORS Origin:', res.getHeader('Access-Control-Allow-Origin'));
+        console.log('TEMP DEBUG: Removed Accept-Ranges header to prevent Range requests');
         
         // Stream the R2 object body with robust error handling
         if (r2Response.Body) {
