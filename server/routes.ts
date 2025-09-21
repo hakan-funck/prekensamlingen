@@ -238,29 +238,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('R2 Response - Status:', statusCode, 'Content-Length:', r2Response.ContentLength);
         
-        // Stream the R2 object body
+        // Stream the R2 object body with robust error handling
         if (r2Response.Body) {
           const { pipeline } = await import('stream/promises');
           
-          try {
-            // R2Response.Body is already a Node.js readable stream
-            const readable = r2Response.Body as any;
-            
-            req.on('close', () => {
-              console.log('Client disconnected, aborting R2 stream');
-              if (readable.destroy) {
-                readable.destroy();
+          // R2Response.Body is already a Node.js readable stream
+          const readable = r2Response.Body as any;
+          let streamAborted = false;
+          let streamCompleted = false;
+          let idleTimeout: NodeJS.Timeout | null = null;
+          
+          // Set up idle timeout (2 minutes) that resets on data
+          const resetIdleTimeout = () => {
+            if (idleTimeout) clearTimeout(idleTimeout);
+            idleTimeout = setTimeout(() => {
+              if (!streamAborted && !streamCompleted) {
+                streamAborted = true;
+                console.log('R2 stream idle timeout - cleaning up');
+                if (readable.destroy) readable.destroy();
+                if (!res.destroyed && !res.finished) res.destroy();
               }
-            });
-            
+            }, 120000); // 2 minutes
+          };
+          
+          // Track client disconnection properly (only if not normally completed)
+          const handleClientAbort = () => {
+            if (!streamAborted && !streamCompleted && !res.writableEnded && !res.finished) {
+              streamAborted = true;
+              console.log('Client aborted R2 stream');
+              if (readable.destroy) readable.destroy();
+            }
+          };
+          
+          // Track normal completion
+          const handleStreamComplete = () => {
+            streamCompleted = true;
+          };
+          
+          // Cleanup function with precise listener removal
+          const cleanup = () => {
+            if (idleTimeout) {
+              clearTimeout(idleTimeout);
+              idleTimeout = null;
+            }
+            // Remove only our specific listeners
+            req.removeListener('aborted', handleClientAbort);
+            req.removeListener('close', handleClientAbort);
+            res.removeListener('close', handleClientAbort);
+            res.removeListener('finish', handleStreamComplete);
+            readable.off('data', resetIdleTimeout);
+            readable.removeListener('end', handleStreamComplete);
+          };
+          
+          // Listen for client disconnection
+          req.once('aborted', handleClientAbort);
+          req.once('close', handleClientAbort);
+          res.once('close', handleClientAbort);
+          res.once('finish', handleStreamComplete);
+          readable.once('end', handleStreamComplete);
+          
+          // Reset timeout on data flow
+          readable.on('data', resetIdleTimeout);
+          resetIdleTimeout(); // Start the timer
+          
+          try {
+            // Use pipeline for proper backpressure handling
             await pipeline(readable, res);
             console.log('R2 audio stream completed successfully');
             
-          } catch (pipelineError) {
-            console.error('R2 pipeline error:', pipelineError);
-            if (!res.headersSent) {
+          } catch (pipelineError: any) {
+            console.error('R2 pipeline error:', pipelineError.message || pipelineError);
+            
+            // Treat expected disconnections as normal
+            if (pipelineError.code === 'ERR_STREAM_PREMATURE_CLOSE' || 
+                req.aborted || streamAborted) {
+              console.log('R2 stream ended due to client disconnect - this is normal');
+            } else if (!res.headersSent) {
               res.status(500).json({ error: 'Error streaming audio from R2' });
             }
+          } finally {
+            cleanup();
           }
         } else {
           res.status(404).json({ error: 'R2 object not found' });
