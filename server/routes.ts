@@ -13,17 +13,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       // Create the Google Drive download URL
-      const googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
       
       console.log('Proxying audio request for file ID:', fileId);
       console.log('Google Drive URL:', googleDriveUrl);
       
+      // Prepare headers to forward to Google Drive including Range
+      const fetchHeaders: Record<string, string> = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      };
+      
+      // Forward Range header if present
+      if (req.headers.range) {
+        fetchHeaders['Range'] = req.headers.range;
+        console.log('Forwarding Range header:', req.headers.range);
+      }
+      
       // Fetch the file from Google Drive
-      const response = await fetch(googleDriveUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+      let response = await fetch(googleDriveUrl, {
+        headers: fetchHeaders
       });
+      
+      // Handle Google Drive interstitials/confirmation pages
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        const htmlContent = await response.text();
+        console.log('Google Drive returned HTML, checking for confirmation page');
+        
+        // Check if it's a download confirmation page
+        const confirmMatch = htmlContent.match(/confirm=([^&"]+)/);
+        if (confirmMatch) {
+          const confirmToken = confirmMatch[1];
+          googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${confirmToken}`;
+          console.log('Retrying with confirm token:', confirmToken);
+          
+          // Retry with confirmation token
+          response = await fetch(googleDriveUrl, {
+            headers: fetchHeaders
+          });
+        }
+      }
       
       if (!response.ok) {
         console.error('Google Drive fetch failed:', response.status, response.statusText);
@@ -34,78 +63,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get content type from Google Drive response
-      const contentType = response.headers.get('content-type') || 'audio/mpeg';
-      const contentLength = response.headers.get('content-length');
+      // Mirror all relevant headers from Google Drive response
+      const upstreamContentType = response.headers.get('content-type') || 'audio/mpeg';
+      const upstreamContentLength = response.headers.get('content-length');
+      const upstreamContentRange = response.headers.get('content-range');
+      const upstreamAcceptRanges = response.headers.get('accept-ranges');
       
-      // Set appropriate headers for audio streaming
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Accept-Ranges', 'bytes');
-      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      // Set response status to match upstream (200 or 206)
+      res.status(response.status);
+      
+      // Mirror headers from upstream
+      res.setHeader('Content-Type', upstreamContentType);
+      if (upstreamContentLength) {
+        res.setHeader('Content-Length', upstreamContentLength);
+      }
+      if (upstreamContentRange) {
+        res.setHeader('Content-Range', upstreamContentRange);
+      }
+      if (upstreamAcceptRanges) {
+        res.setHeader('Accept-Ranges', upstreamAcceptRanges);
+      } else {
+        res.setHeader('Accept-Ranges', 'bytes');
+      }
       
       // Add CORS headers for published domain
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET');
-      res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Range');
+      res.setHeader('Access-Control-Allow-Headers', 'Range');
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
       
-      if (contentLength) {
-        res.setHeader('Content-Length', contentLength);
-      }
+      // Add cache headers
+      res.setHeader('Cache-Control', 'public, max-age=3600');
       
-      // Handle range requests for audio seeking
-      const range = req.headers.range;
-      if (range && contentLength) {
-        try {
-          const parts = range.replace(/bytes=/, "").split("-");
-          const start = parseInt(parts[0], 10);
-          const totalLength = parseInt(contentLength, 10);
-          const end = parts[1] ? parseInt(parts[1], 10) : totalLength - 1;
-          
-          if (isNaN(start) || isNaN(totalLength) || start >= totalLength) {
-            console.error('Invalid range request:', { range, contentLength, start, totalLength });
-            // Don't handle range, just serve the full file
-          } else {
-            res.status(206);
-            res.setHeader('Content-Range', `bytes ${start}-${end}/${totalLength}`);
-            res.setHeader('Content-Length', end - start + 1);
-          }
-        } catch (rangeError) {
-          console.error('Error parsing range request:', rangeError);
-          // Continue without range support
-        }
-      }
+      console.log('Response status:', response.status);
+      console.log('Content-Type:', upstreamContentType);
+      console.log('Content-Length:', upstreamContentLength);
+      console.log('Content-Range:', upstreamContentRange);
       
-      // Stream the audio data
+      // Stream the audio data using pipeline for proper backpressure
       if (response.body) {
-        const reader = response.body.getReader();
+        const { pipeline } = await import('stream/promises');
+        const { Readable } = await import('stream');
         
-        const pump = async () => {
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              
-              if (done) {
-                res.end();
-                break;
-              }
-              
-              if (!res.write(value)) {
-                // If the client's buffer is full, wait for drain event
-                await new Promise(resolve => res.once('drain', resolve));
-              }
-            }
-          } catch (error) {
-            console.error('Error streaming audio:', error);
-            if (!res.headersSent) {
-              res.status(500).json({ error: 'Error streaming audio' });
-            }
-            res.end();
-          } finally {
-            reader.releaseLock();
+        try {
+          // Convert Web ReadableStream to Node.js Readable stream
+          const readable = Readable.fromWeb(response.body as any);
+          
+          // Handle client disconnect
+          req.on('close', () => {
+            console.log('Client disconnected, aborting stream');
+            readable.destroy();
+          });
+          
+          // Pipe the stream
+          await pipeline(readable, res);
+          console.log('Audio stream completed successfully');
+          
+        } catch (pipelineError) {
+          console.error('Pipeline error:', pipelineError);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Error streaming audio' });
           }
-        };
-        
-        await pump();
+        }
       } else {
         res.status(500).json({ error: 'No response body from Google Drive' });
       }

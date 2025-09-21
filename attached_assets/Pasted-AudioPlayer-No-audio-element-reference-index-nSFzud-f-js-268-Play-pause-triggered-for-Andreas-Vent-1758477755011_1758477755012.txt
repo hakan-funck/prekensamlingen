@@ -1,0 +1,51 @@
+AudioPlayer: No audio element reference
+index-nSFzud-f.js:268 Play/pause triggered for: Andreas Ventin
+index-nSFzud-f.js:267 AudioPlayer: isPlaying changed to: true
+index-nSFzud-f.js:267 AudioPlayer: Audio readyState: 0
+index-nSFzud-f.js:267 AudioPlayer: Audio paused: true
+index-nSFzud-f.js:267 AudioPlayer: Audio current time: 0
+index-nSFzud-f.js:267 AudioPlayer: Audio not ready, waiting for canplay event
+index-nSFzud-f.js:267 AudioPlayer: Audio load started for: Andreas Ventin
+index-nSFzud-f.js:267 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/18nXwXIJjRMgwMsNuKddtF3P0l9U6fisP
+18nXwXIJjRMgwMsNuKddtF3P0l9U6fisP:1  GET https://prekensamlingen.replit.app/api/audio/18nXwXIJjRMgwMsNuKddtF3P0l9U6fisP 500 (Internal Server Error)Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio error event: Event {isTrusted: true, type: 'error', target: audio, currentTarget: audio, eventPhase: 2, …}
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio error details: MediaError {code: 4, message: 'MEDIA_ELEMENT_ERROR: Format error'}
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/18nXwXIJjRMgwMsNuKddtF3P0l9U6fisP
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio network state: 3
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio ready state: 0
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:268 Player play/pause toggled
+index-nSFzud-f.js:267 AudioPlayer: isPlaying changed to: false
+index-nSFzud-f.js:267 AudioPlayer: Audio readyState: 0
+index-nSFzud-f.js:267 AudioPlayer: Audio paused: true
+index-nSFzud-f.js:267 AudioPlayer: Audio current time: 0
+index-nSFzud-f.js:267 AudioPlayer: Pausing audio
+index-nSFzud-f.js:268 Play/pause triggered for: Elis Snellman
+index-nSFzud-f.js:267 AudioPlayer: isPlaying changed to: true
+index-nSFzud-f.js:267 AudioPlayer: Audio readyState: 0
+index-nSFzud-f.js:267 AudioPlayer: Audio paused: true
+index-nSFzud-f.js:267 AudioPlayer: Audio current time: 0
+index-nSFzud-f.js:267 AudioPlayer: Audio not ready, waiting for canplay event
+index-nSFzud-f.js:267 AudioPlayer: Audio load started for: Elis Snellman
+index-nSFzud-f.js:267 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/1v9AJN4hBrol2IPWtIs6md-t2x6J_8Liu
+/api/audio/1v9AJN4hBrol2IPWtIs6md-t2x6J_8Liu:1  GET https://prekensamlingen.replit.app/api/audio/1v9AJN4hBrol2IPWtIs6md-t2x6J_8Liu 500 (Internal Server Error)Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio error event: Event {isTrusted: true, type: 'error', target: audio, currentTarget: audio, eventPhase: 2, …}
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio error details: MediaError {code: 4, message: 'MEDIA_ELEMENT_ERROR: Format error'}
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio src: https://prekensamlingen.replit.app/api/audio/1v9AJN4hBrol2IPWtIs6md-t2x6J_8Liu
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio network state: 3
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:267 AudioPlayer: Audio ready state: 0
+k @ index-nSFzud-f.js:267Understand this error
+index-nSFzud-f.js:268 Player play/pause toggled
+index-nSFzud-f.js:267 AudioPlayer: isPlaying changed to: false
+index-nSFzud-f.js:267 AudioPlayer: Audio readyState: 0
+index-nSFzud-f.js:267 AudioPlayer: Audio paused: true
+index-nSFzud-f.js:267 AudioPlayer: Audio current time: 0
+index-nSFzud-f.js:267 AudioPlayer: Pausing audio
