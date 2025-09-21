@@ -313,7 +313,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100svh] bg-background">
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

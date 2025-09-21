@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure sticky positioning works on mobile browsers */
+.sticky-mobile {
+  position: -webkit-sticky; /* For older Safari versions */
+  position: sticky; /* Standard sticky for modern browsers */
+}
+
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);
