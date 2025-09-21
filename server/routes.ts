@@ -359,6 +359,190 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk upload API for admin
+  app.post('/api/admin/bulk-upload', async (req, res) => {
+    const { urls, updateSheet = false } = req.body;
+
+    if (!urls || !Array.isArray(urls) || urls.length === 0) {
+      return res.status(400).json({ error: 'URLs array is required' });
+    }
+
+    if (urls.length > 10) {
+      return res.status(400).json({ error: 'Maximum 10 URLs allowed' });
+    }
+
+    // Set up Server-Sent Events
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const sendProgress = (data: any) => {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        console.log(`Processing URL ${i + 1}/${urls.length}: ${url}`);
+
+        try {
+          // Extract Google Drive file ID
+          const fileIdMatch = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+          if (!fileIdMatch) {
+            sendProgress({ 
+              status: 'error', 
+              error: 'Invalid Google Drive URL', 
+              progress: 100 
+            });
+            continue;
+          }
+
+          const fileId = fileIdMatch[1];
+          
+          sendProgress({ 
+            status: 'downloading', 
+            progress: 20 
+          });
+
+          // Download from Google Drive
+          let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+          
+          const fetchHeaders: Record<string, string> = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          };
+
+          let response = await fetch(googleDriveUrl, {
+            method: 'GET',
+            headers: fetchHeaders
+          });
+
+          // Handle virus scan confirmation if needed
+          if (!response.ok || response.headers.get('content-type')?.includes('text/html')) {
+            const htmlContent = await response.text();
+            const confirmMatch = htmlContent.match(/confirm=([^&"]+)/);
+            if (confirmMatch) {
+              const confirmToken = confirmMatch[1];
+              googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${confirmToken}`;
+              response = await fetch(googleDriveUrl, {
+                method: 'GET',
+                headers: fetchHeaders
+              });
+            }
+          }
+
+          if (!response.ok) {
+            sendProgress({ 
+              status: 'error', 
+              error: `Failed to download from Google Drive: ${response.status}`, 
+              progress: 100 
+            });
+            continue;
+          }
+
+          // Get filename from response headers or generate one
+          let filename = 'sermon.mp3';
+          const contentDisposition = response.headers.get('content-disposition');
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (filenameMatch && filenameMatch[1]) {
+              filename = filenameMatch[1].replace(/['"]/g, '');
+            }
+          } else {
+            // Generate filename from drive ID and timestamp
+            filename = `drive_${fileId}_${Date.now()}.mp3`;
+          }
+
+          // Clean filename: replace spaces with underscores, remove special chars
+          const cleanFilename = filename
+            .replace(/\s+/g, '_')
+            .replace(/[^\w.-]/g, '')
+            .replace(/_+/g, '_');
+
+          sendProgress({ 
+            status: 'uploading', 
+            progress: 60,
+            filename: cleanFilename
+          });
+
+          // Upload to R2
+          const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+          const r2Key = `sermons/${cleanFilename}`;
+          
+          if (!response.body) {
+            sendProgress({ 
+              status: 'error', 
+              error: 'No response body from Google Drive', 
+              progress: 100 
+            });
+            continue;
+          }
+
+          // Convert Web ReadableStream to Buffer for R2
+          const chunks: Uint8Array[] = [];
+          const reader = response.body.getReader();
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+          }
+          
+          const buffer = Buffer.concat(chunks);
+          
+          const putCommand = new PutObjectCommand({
+            Bucket: 'prekensamlingen',
+            Key: r2Key,
+            Body: buffer,
+            ContentType: 'audio/mpeg',
+            ContentLength: buffer.length,
+          });
+
+          await r2Client.send(putCommand);
+
+          sendProgress({ 
+            status: 'updating-sheet', 
+            progress: 90,
+            filename: cleanFilename
+          });
+
+          // Update Google Sheet if requested
+          if (updateSheet) {
+            // For now, we'll just log this - Google Sheets API would need authentication
+            console.log(`Should update Google Sheet: replace ${fileId} with ${cleanFilename}`);
+            // TODO: Implement Google Sheets API update
+          }
+
+          sendProgress({ 
+            status: 'completed', 
+            progress: 100,
+            filename: cleanFilename
+          });
+
+          console.log(`Successfully uploaded: ${r2Key}`);
+
+        } catch (error) {
+          console.error(`Error processing URL ${url}:`, error);
+          sendProgress({ 
+            status: 'error', 
+            error: error instanceof Error ? error.message : 'Unknown error',
+            progress: 100 
+          });
+        }
+      }
+
+      res.end();
+    } catch (error) {
+      console.error('Bulk upload error:', error);
+      sendProgress({ 
+        status: 'error', 
+        error: error instanceof Error ? error.message : 'Server error',
+        progress: 100 
+      });
+      res.end();
+    }
+  });
+
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
