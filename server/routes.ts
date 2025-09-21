@@ -359,9 +359,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin authentication middleware
+  // Admin authentication middleware - requires ADMIN_SECRET environment variable
   const validateAdminAuth = (req: any, res: any, next: any) => {
-    const adminSecret = process.env.ADMIN_SECRET || 'replit-admin-2024';
+    const adminSecret = process.env.ADMIN_SECRET;
+    
+    if (!adminSecret) {
+      console.error('ADMIN_SECRET environment variable not configured');
+      return res.status(500).json({ error: 'Admin functionality not configured' });
+    }
+    
     const providedSecret = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-admin-secret'];
     
     if (providedSecret !== adminSecret) {

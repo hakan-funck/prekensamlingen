@@ -61,11 +61,27 @@ export default function AdminUpload() {
           idx === i ? { ...upload, status: 'downloading', progress: 0 } : upload
         ));
 
+        // Get admin secret from user input or localStorage
+        const adminSecret = localStorage.getItem('admin-secret') || prompt('Admin Secret:');
+        if (!adminSecret) {
+          toast({
+            title: 'Admin Secret påkrevd',
+            description: 'Du må oppgi admin secret for å bruke denne funksjonen.',
+            variant: 'destructive'
+          });
+          setIsUploading(false);
+          return;
+        }
+        
+        if (adminSecret !== localStorage.getItem('admin-secret')) {
+          localStorage.setItem('admin-secret', adminSecret);
+        }
+
         const response = await fetch('/api/admin/bulk-upload', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Admin-Secret': 'replit-admin-2024'
+            'X-Admin-Secret': adminSecret
           },
           body: JSON.stringify({ 
             urls: [url],
