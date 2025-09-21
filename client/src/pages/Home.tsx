@@ -283,7 +283,7 @@ export default function Home() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[100svh] bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Laster prekener fra Google Sheets...</p>
@@ -295,7 +295,7 @@ export default function Home() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[100svh] bg-background flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-destructive mb-2">Feil ved lasting av data</h2>
