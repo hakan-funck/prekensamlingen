@@ -171,6 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ error: 'File key is required' });
     }
     
+    
     try {
       const urlType = getAudioUrlType(fileKey);
       console.log('Proxying audio request for:', fileKey, 'Type:', urlType);
@@ -204,18 +205,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           Key: objectKey,
         };
         
-        // TEMPORARY: Disable Range support to debug browser disconnect
-        // if (req.headers.range) {
-        //   getObjectParams.Range = req.headers.range;
-        //   console.log('Forwarding Range header to R2:', req.headers.range);
-        // }
-        console.log('TEMP DEBUG: Ignoring Range request, serving full file');
+        // Handle Range requests properly
+        if (req.headers.range) {
+          getObjectParams.Range = req.headers.range;
+          console.log('Forwarding Range header to R2:', req.headers.range);
+        }
         
         const command = new GetObjectCommand(getObjectParams);
         const r2Response = await r2Client.send(command);
         
-        // Always return 200 OK for debugging
-        const statusCode = 200;
+        // Set proper response status
+        const statusCode = req.headers.range ? 206 : 200;
         res.status(statusCode);
         
         // Set headers from R2 response
@@ -223,12 +223,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (r2Response.ContentLength) {
           res.setHeader('Content-Length', r2Response.ContentLength.toString());
         }
-        // TEMP DEBUG: Skip Content-Range header since we're not using ranges
-        // if (r2Response.ContentRange) {
-        //   res.setHeader('Content-Range', r2Response.ContentRange);
-        // }
-        // TEMP DEBUG: Remove Accept-Ranges to prevent browser from sending Range requests
-        // res.setHeader('Accept-Ranges', 'bytes');
+        // Set Content-Range header for partial content responses
+        if (r2Response.ContentRange) {
+          res.setHeader('Content-Range', r2Response.ContentRange);
+        }
+        res.setHeader('Accept-Ranges', 'bytes');
         
         // CORS headers
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -243,97 +242,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('R2 Response Headers:');
         console.log('  Content-Type:', r2Response.ContentType);
         console.log('  Content-Range:', r2Response.ContentRange);
-        console.log('Headers being sent to browser:');
-        console.log('  Content-Type:', res.getHeader('Content-Type'));
-        console.log('  Content-Length:', res.getHeader('Content-Length'));
-        console.log('  Content-Range:', res.getHeader('Content-Range'));
-        console.log('  Accept-Ranges:', res.getHeader('Accept-Ranges'));
-        console.log('  CORS Origin:', res.getHeader('Access-Control-Allow-Origin'));
-        console.log('TEMP DEBUG: Removed Accept-Ranges header to prevent Range requests');
+        console.log('Headers sent - Status:', statusCode, 'Content-Length:', r2Response.ContentLength, 'Range:', r2Response.ContentRange ? 'Yes' : 'No');
         
-        // Stream the R2 object body with robust error handling
+        // Stream the R2 object body with simple error handling
         if (r2Response.Body) {
-          const { pipeline } = await import('stream/promises');
-          
-          // R2Response.Body is already a Node.js readable stream
-          const readable = r2Response.Body as any;
-          let streamAborted = false;
-          let streamCompleted = false;
-          let idleTimeout: NodeJS.Timeout | null = null;
-          
-          // Set up idle timeout (2 minutes) that resets on data
-          const resetIdleTimeout = () => {
-            if (idleTimeout) clearTimeout(idleTimeout);
-            idleTimeout = setTimeout(() => {
-              if (!streamAborted && !streamCompleted) {
-                streamAborted = true;
-                console.log('R2 stream idle timeout - cleaning up');
-                if (readable.destroy) readable.destroy();
-                if (!res.destroyed && !res.finished) res.destroy();
-              }
-            }, 120000); // 2 minutes
-          };
-          
-          // Track client disconnection properly (only if not normally completed)
-          const handleClientAbort = () => {
-            if (!streamAborted && !streamCompleted && !res.writableEnded && !res.finished) {
-              streamAborted = true;
-              console.log('Client aborted R2 stream');
-              if (readable.destroy) readable.destroy();
-            }
-          };
-          
-          // Track normal completion
-          const handleStreamComplete = () => {
-            streamCompleted = true;
-          };
-          
-          // Cleanup function with precise listener removal
-          const cleanup = () => {
-            if (idleTimeout) {
-              clearTimeout(idleTimeout);
-              idleTimeout = null;
-            }
-            // Remove only our specific listeners
-            req.removeListener('aborted', handleClientAbort);
-            req.removeListener('close', handleClientAbort);
-            res.removeListener('close', handleClientAbort);
-            res.removeListener('finish', handleStreamComplete);
-            readable.off('data', resetIdleTimeout);
-            readable.removeListener('end', handleStreamComplete);
-          };
-          
-          // Listen for client disconnection
-          req.once('aborted', handleClientAbort);
-          req.once('close', handleClientAbort);
-          res.once('close', handleClientAbort);
-          res.once('finish', handleStreamComplete);
-          readable.once('end', handleStreamComplete);
-          
-          // Reset timeout on data flow
-          readable.on('data', resetIdleTimeout);
-          resetIdleTimeout(); // Start the timer
-          
           try {
-            // Use pipeline for proper backpressure handling
-            await pipeline(readable, res);
-            console.log('R2 audio stream completed successfully');
+            const readable = r2Response.Body as any;
             
-          } catch (pipelineError: any) {
-            console.error('R2 pipeline error:', pipelineError.message || pipelineError);
+            // Simple pipe - much more reliable than complex pipeline
+            readable.pipe(res);
             
-            // Treat expected disconnections as normal
-            if (pipelineError.code === 'ERR_STREAM_PREMATURE_CLOSE' || 
-                req.aborted || streamAborted) {
-              console.log('R2 stream ended due to client disconnect - this is normal');
-            } else if (!res.headersSent) {
-              res.status(500).json({ error: 'Error streaming audio from R2' });
+            readable.on('error', (error: any) => {
+              console.error('R2 stream error:', error);
+            });
+            
+            res.on('close', () => {
+              if (!res.writableEnded) {
+                console.log('Client disconnected, destroying R2 stream');
+                readable.destroy();
+              }
+            });
+            
+          } catch (streamError: any) {
+            console.error('R2 stream setup error:', streamError);
+            if (!res.headersSent) {
+              res.status(500).json({ error: 'Error setting up audio stream' });
             }
-          } finally {
-            cleanup();
           }
         } else {
-          res.status(404).json({ error: 'R2 object not found' });
+          res.status(404).json({ error: 'Audio file not found in R2' });
         }
         
         return;

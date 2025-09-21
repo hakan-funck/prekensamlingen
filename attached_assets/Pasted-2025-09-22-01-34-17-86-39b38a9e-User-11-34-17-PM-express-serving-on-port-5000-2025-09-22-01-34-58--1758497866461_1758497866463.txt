@@ -1,0 +1,156 @@
+2025-09-22 01:34:17.86
+39b38a9e
+User
+11:34:17 PM [express] serving on port 5000
+2025-09-22 01:34:58.59
+39b38a9e
+User
+Proxying audio request for: sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3 Type: r2
+2025-09-22 01:34:58.59
+39b38a9e
+User
+Request headers: Range: bytes=0-
+2025-09-22 01:34:58.59
+39b38a9e
+User
+Fetching from R2 bucket: prekensamlingen key: sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3
+2025-09-22 01:34:58.59
+39b38a9e
+User
+TEMP DEBUG: Ignoring Range request, serving full file
+2025-09-22 01:34:58.90
+39b38a9e
+User
+R2 Response - Status: 200 Content-Length: 41047460
+2025-09-22 01:34:58.90
+39b38a9e
+User
+R2 Response Headers:
+2025-09-22 01:34:58.90
+39b38a9e
+User
+Content-Type: audio/mpeg
+2025-09-22 01:34:58.90
+39b38a9e
+User
+Content-Range: undefined
+2025-09-22 01:34:58.90
+39b38a9e
+User
+Headers being sent to browser:
+2025-09-22 01:34:58.90
+39b38a9e
+User
+Content-Type: audio/mpeg
+2025-09-22 01:34:58.90
+39b38a9e
+User
+Content-Length: 41047460
+2025-09-22 01:34:58.90
+39b38a9e
+User
+Content-Range: undefined
+2025-09-22 01:34:58.90
+39b38a9e
+User
+Accept-Ranges: undefined
+2025-09-22 01:34:58.90
+39b38a9e
+User
+CORS Origin: *
+2025-09-22 01:34:58.90
+39b38a9e
+User
+TEMP DEBUG: Removed Accept-Ranges header to prevent Range requests
+2025-09-22 01:34:59.45
+39b38a9e
+User
+Client aborted R2 stream
+2025-09-22 01:34:59.45
+39b38a9e
+User
+R2 pipeline error: Premature close
+2025-09-22 01:34:59.45
+39b38a9e
+User
+R2 stream ended due to client disconnect - this is normal
+2025-09-22 01:35:36.77
+39b38a9e
+User
+Proxying audio request for: sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3 Type: r2
+2025-09-22 01:35:36.77
+39b38a9e
+User
+Request headers: No range header
+2025-09-22 01:35:36.77
+39b38a9e
+User
+Fetching from R2 bucket: prekensamlingen key: sermons/1975-Andreas_Ventin_Svanstein_Luk10.mp3
+2025-09-22 01:35:36.77
+39b38a9e
+User
+TEMP DEBUG: Ignoring Range request, serving full file
+2025-09-22 01:35:37.03
+39b38a9e
+User
+R2 Response - Status: 200 Content-Length: 41047460
+2025-09-22 01:35:37.03
+39b38a9e
+User
+R2 Response Headers:
+2025-09-22 01:35:37.03
+39b38a9e
+User
+Content-Type: audio/mpeg
+2025-09-22 01:35:37.03
+39b38a9e
+User
+Content-Range: undefined
+2025-09-22 01:35:37.03
+39b38a9e
+User
+Headers being sent to browser:
+2025-09-22 01:35:37.03
+39b38a9e
+User
+Content-Type: audio/mpeg
+2025-09-22 01:35:37.03
+39b38a9e
+User
+Content-Length: 41047460
+2025-09-22 01:35:37.03
+39b38a9e
+User
+Content-Range: undefined
+2025-09-22 01:35:37.03
+39b38a9e
+User
+Accept-Ranges: undefined
+2025-09-22 01:35:37.03
+39b38a9e
+User
+CORS Origin: *
+2025-09-22 01:35:37.03
+39b38a9e
+User
+TEMP DEBUG: Removed Accept-Ranges header to prevent Range requests
+2025-09-22 01:35:37.74
+39b38a9e
+User
+Client aborted R2 stream
+2025-09-22 01:35:37.75
+39b38a9e
+User
+R2 stream ended due to client disconnect - this is normal
+2025-09-22 01:35:37.75
+39b38a9e
+User
+R2 pipeline error: Premature close
+2025-09-22 01:35:50.39
+6fe1e01d
+System
+system: received signal terminated
+2025-09-22 01:35:50.38
+6fe1e01d
+System
+system: received signal terminated
