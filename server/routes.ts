@@ -1,6 +1,28 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+
+// Initialize R2 client
+const r2Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
+  },
+});
+
+// Helper function to detect URL type
+function getAudioUrlType(url: string): 'google-drive' | 'r2' | 'unknown' {
+  if (url.includes('drive.google.com') || url.match(/^[a-zA-Z0-9_-]{28,}$/)) {
+    return 'google-drive';
+  }
+  if (url.includes('.r2.cloudflarestorage.com') || url.startsWith('r2://')) {
+    return 'r2';
+  }
+  return 'unknown';
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // CORS preflight handler for audio proxy  
@@ -26,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Google Drive audio proxy endpoint
+  // Hybrid audio proxy endpoint (Google Drive + R2)
   app.get('/api/audio/:fileId', async (req, res) => {
     const { fileId } = req.params;
     
@@ -35,12 +57,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      // Create the Google Drive download URL
-      let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      
-      console.log('Proxying audio request for file ID:', fileId);
-      console.log('Google Drive URL:', googleDriveUrl);
+      const urlType = getAudioUrlType(fileId);
+      console.log('Proxying audio request for:', fileId, 'Type:', urlType);
       console.log('Request headers:', req.headers.range ? `Range: ${req.headers.range}` : 'No range header');
+      
+      if (urlType === 'r2') {
+        // Handle R2 URLs
+        let bucketName = 'prekensamlingen';
+        let objectKey = fileId;
+        
+        // Parse R2 URLs: r2://bucket/key or direct key
+        if (fileId.startsWith('r2://')) {
+          const parts = fileId.replace('r2://', '').split('/');
+          bucketName = parts[0];
+          objectKey = parts.slice(1).join('/');
+        }
+        
+        console.log('Fetching from R2 bucket:', bucketName, 'key:', objectKey);
+        
+        const getObjectParams: any = {
+          Bucket: bucketName,
+          Key: objectKey,
+        };
+        
+        // Handle Range requests for R2
+        if (req.headers.range) {
+          getObjectParams.Range = req.headers.range;
+          console.log('Forwarding Range header to R2:', req.headers.range);
+        }
+        
+        const command = new GetObjectCommand(getObjectParams);
+        const r2Response = await r2Client.send(command);
+        
+        // Set proper response status
+        const statusCode = req.headers.range ? 206 : 200;
+        res.status(statusCode);
+        
+        // Set headers from R2 response
+        res.setHeader('Content-Type', r2Response.ContentType || 'audio/mpeg');
+        if (r2Response.ContentLength) {
+          res.setHeader('Content-Length', r2Response.ContentLength.toString());
+        }
+        if (r2Response.ContentRange) {
+          res.setHeader('Content-Range', r2Response.ContentRange);
+        }
+        res.setHeader('Accept-Ranges', 'bytes');
+        
+        // CORS headers
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Access-Control-Allow-Headers', 'Range');
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
+        
+        // Cache headers
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        
+        console.log('R2 Response - Status:', statusCode, 'Content-Length:', r2Response.ContentLength);
+        
+        // Stream the R2 object body
+        if (r2Response.Body) {
+          const { pipeline } = await import('stream/promises');
+          const { Readable } = await import('stream');
+          
+          try {
+            const readable = Readable.fromWeb(r2Response.Body as any);
+            
+            req.on('close', () => {
+              console.log('Client disconnected, aborting R2 stream');
+              readable.destroy();
+            });
+            
+            await pipeline(readable, res);
+            console.log('R2 audio stream completed successfully');
+            
+          } catch (pipelineError) {
+            console.error('R2 pipeline error:', pipelineError);
+            if (!res.headersSent) {
+              res.status(500).json({ error: 'Error streaming audio from R2' });
+            }
+          }
+        } else {
+          res.status(404).json({ error: 'R2 object not found' });
+        }
+        
+        return;
+      }
+      
+      // Handle Google Drive URLs (existing logic)
+      let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      console.log('Google Drive URL:', googleDriveUrl);
       
       // Prepare headers to forward to Google Drive including Range
       const fetchHeaders: Record<string, string> = {
