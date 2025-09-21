@@ -16,24 +16,38 @@ export interface RawSermonData {
   annenInfo?: string;
 }
 
-// Convert Google Drive sharing URL to use our backend proxy
-export function convertGoogleDriveUrl(shareUrl: string): string {
-  if (!shareUrl || shareUrl.trim() === '' || shareUrl === '-') {
+// Normalize audio URL to use our backend proxy (handles Google Drive URLs, R2 filenames, and direct URLs)
+export function convertGoogleDriveUrl(audioValue: string): string {
+  if (!audioValue || audioValue.trim() === '' || audioValue === '-') {
     return '#';
   }
   
-  // Extract file ID from Google Drive share URL
-  const fileIdMatch = shareUrl.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+  const trimmed = audioValue.trim();
+  
+  // Handle Google Drive share URLs
+  const fileIdMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
   if (fileIdMatch) {
     const fileId = fileIdMatch[1];
-    
-    // Use our backend proxy to stream the audio file
-    const proxyUrl = `/api/audio/${fileId}`;
-    return proxyUrl;
+    return `/api/audio/${fileId}`;
   }
   
-  // If it's already a direct URL or not a Google Drive URL, return as-is
-  return shareUrl;
+  // Handle bare Google Drive IDs (28-33 characters, alphanumeric with dashes/underscores)
+  if (/^[a-zA-Z0-9_-]{28,33}$/.test(trimmed)) {
+    return `/api/audio/${trimmed}`;
+  }
+  
+  // Handle R2 filenames (ends with .mp3 and doesn't start with http//)
+  if (trimmed.endsWith('.mp3') && !trimmed.startsWith('http') && !trimmed.startsWith('/')) {
+    return `/api/audio/sermons/${trimmed}`;
+  }
+  
+  // If it already starts with /api/audio/, return as-is
+  if (trimmed.startsWith('/api/audio/')) {
+    return trimmed;
+  }
+  
+  // If it's already a full URL or proxy path, return as-is
+  return trimmed;
 }
 
 // Extract book from "Book Chapter" format (e.g., "Joh 16" -> "Joh", "1 Mos 50" -> "1Mos")

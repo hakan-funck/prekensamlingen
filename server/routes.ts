@@ -33,7 +33,7 @@ function getAudioUrlType(url: string): 'google-drive' | 'r2' | 'unknown' {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // CORS preflight handler for audio proxy  
-  app.options('/api/audio/:fileId', (req, res) => {
+  app.options('/api/audio/:key(*)', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Type, Authorization');
