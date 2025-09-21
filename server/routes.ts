@@ -43,6 +43,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Accept-Ranges', 'bytes');
       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
       
+      // Add CORS headers for published domain
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET');
+      res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Range');
+      
       if (contentLength) {
         res.setHeader('Content-Length', contentLength);
       }
@@ -50,13 +55,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Handle range requests for audio seeking
       const range = req.headers.range;
       if (range && contentLength) {
-        const parts = range.replace(/bytes=/, "").split("-");
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : parseInt(contentLength) - 1;
-        
-        res.status(206);
-        res.setHeader('Content-Range', `bytes ${start}-${end}/${contentLength}`);
-        res.setHeader('Content-Length', end - start + 1);
+        try {
+          const parts = range.replace(/bytes=/, "").split("-");
+          const start = parseInt(parts[0], 10);
+          const totalLength = parseInt(contentLength, 10);
+          const end = parts[1] ? parseInt(parts[1], 10) : totalLength - 1;
+          
+          if (isNaN(start) || isNaN(totalLength) || start >= totalLength) {
+            console.error('Invalid range request:', { range, contentLength, start, totalLength });
+            // Don't handle range, just serve the full file
+          } else {
+            res.status(206);
+            res.setHeader('Content-Range', `bytes ${start}-${end}/${totalLength}`);
+            res.setHeader('Content-Length', end - start + 1);
+          }
+        } catch (rangeError) {
+          console.error('Error parsing range request:', rangeError);
+          // Continue without range support
+        }
       }
       
       // Stream the audio data
@@ -95,11 +111,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
     } catch (error) {
-      console.error('Audio proxy error:', error);
+      console.error('Audio proxy error for fileId:', fileId);
+      console.error('Error details:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      
       if (!res.headersSent) {
         res.status(500).json({ 
           error: 'Internal server error', 
-          message: error instanceof Error ? error.message : 'Unknown error'
+          message: error instanceof Error ? error.message : 'Unknown error',
+          fileId: fileId
         });
       }
     }
