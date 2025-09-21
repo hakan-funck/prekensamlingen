@@ -3,15 +3,38 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
-// Initialize R2 client
-const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
-  },
-});
+// Validate R2 environment variables
+const validateR2Config = () => {
+  const required = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_R2_ACCESS_KEY_ID', 'CLOUDFLARE_R2_SECRET_ACCESS_KEY'];
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    console.error('❌ Missing R2 environment variables:', missing.join(', '));
+    console.error('   Audio streaming from R2 will not work!');
+    console.error('   Please set these variables in your deployment environment.');
+    return false;
+  }
+  
+  console.log('✅ R2 configuration validated');
+  return true;
+};
+
+const hasR2Config = validateR2Config();
+
+// Initialize R2 client only if config is available
+let r2Client: S3Client | null = null;
+if (hasR2Config) {
+  r2Client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
+    },
+  });
+} else {
+  console.warn('⚠️  R2 client not initialized due to missing credentials');
+}
 
 // Helper function to detect URL type
 function getAudioUrlType(url: string): 'google-drive' | 'r2' | 'unknown' {
@@ -69,6 +92,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (urlType === 'r2' || urlType === 'unknown') {
         // HEAD request to R2
+        if (!r2Client) {
+          console.error('R2 HEAD request failed: R2 client not initialized (missing credentials)');
+          return res.status(500).json({ 
+            error: 'R2 configuration missing',
+            message: 'Audio streaming from R2 is not available due to missing credentials',
+            fileKey: fileKey
+          });
+        }
+        
         let bucketName = 'prekensamlingen';
         let objectKey = fileKey;
         
@@ -146,6 +178,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (urlType === 'r2' || urlType === 'unknown') {
         // Handle R2 URLs
+        if (!r2Client) {
+          console.error('R2 GET request failed: R2 client not initialized (missing credentials)');
+          return res.status(500).json({ 
+            error: 'R2 configuration missing',
+            message: 'Audio streaming from R2 is not available due to missing credentials',
+            fileKey: fileKey
+          });
+        }
+        
         let bucketName = 'prekensamlingen';
         let objectKey = fileKey;
         
@@ -382,6 +423,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     if (!urls || !Array.isArray(urls) || urls.length === 0) {
       return res.status(400).json({ error: 'URLs array is required' });
+    }
+
+    if (!r2Client) {
+      console.error('Bulk upload failed: R2 client not initialized (missing credentials)');
+      return res.status(500).json({ 
+        error: 'R2 configuration missing',
+        message: 'File upload is not available due to missing R2 credentials'
+      });
     }
 
     if (urls.length > 10) {

@@ -23,6 +23,10 @@ localPort = 34847
 externalPort = 3001
 
 [[ports]]
+localPort = 36895
+externalPort = 5000
+
+[[ports]]
 localPort = 37527
 externalPort = 3002
 
@@ -36,6 +40,11 @@ externalPort = 4200
 
 [env]
 PORT = "5000"
+# Web shortcuts that appear in the right panel
+[[web]]
+name = "Admin Upload"
+url = "http://localhost:5000/admin/upload"
+description = "Admin page for uploading sermons to R2"
 
 [workflows]
 runButton = "Project"
