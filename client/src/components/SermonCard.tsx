@@ -162,7 +162,7 @@ export function SermonCard({
       <CardContent className="pt-0">
         <div className="space-y-3">
           {/* Bible Text and Language Info */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div className="flex items-center gap-2 text-base sm:text-sm">
               <BookOpen className="h-4 w-4 sm:h-3 sm:w-3 text-muted-foreground" />
               <Badge 
@@ -190,7 +190,7 @@ export function SermonCard({
           </div>
 
           {/* Date, Location and Duration */}
-          <div className="flex items-center justify-between text-base sm:text-sm text-muted-foreground">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-base sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4 sm:h-3 sm:w-3" />
