@@ -39,7 +39,7 @@ export function SermonGrid({ sermons, currentSermon, isPlaying, onPlayPause }: S
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="grid-sermons">
+    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" data-testid="grid-sermons">
       {sermons.map((sermon) => (
         <SermonCard
           key={sermon.id}
