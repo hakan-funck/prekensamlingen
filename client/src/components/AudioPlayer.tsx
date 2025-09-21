@@ -34,16 +34,37 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
     if (!audio) return;
 
     const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
+    const updateDuration = () => {
+      console.log('AudioPlayer: Duration loaded:', audio.duration);
+      setDuration(audio.duration);
+    };
     const handleError = (e: Event) => {
-      console.error('Audio error:', e);
-      console.error('Audio error details:', audio.error);
+      console.error('AudioPlayer: Audio error event:', e);
+      console.error('AudioPlayer: Audio error details:', audio.error);
+      console.error('AudioPlayer: Audio src:', audio.src);
+      console.error('AudioPlayer: Audio network state:', audio.networkState);
+      console.error('AudioPlayer: Audio ready state:', audio.readyState);
     };
     const handleLoadStart = () => {
-      console.log('Audio load started for:', sermon?.speaker);
+      console.log('AudioPlayer: Audio load started for:', sermon?.speaker);
+      console.log('AudioPlayer: Audio src:', audio.src);
     };
     const handleCanPlay = () => {
-      console.log('Audio can play for:', sermon?.speaker);
+      console.log('AudioPlayer: Audio can play for:', sermon?.speaker);
+      console.log('AudioPlayer: Audio ready state:', audio.readyState);
+      console.log('AudioPlayer: Audio duration:', audio.duration);
+    };
+    const handlePlay = () => {
+      console.log('AudioPlayer: Audio play event fired');
+    };
+    const handlePause = () => {
+      console.log('AudioPlayer: Audio pause event fired');
+    };
+    const handleWaiting = () => {
+      console.log('AudioPlayer: Audio waiting (buffering)');
+    };
+    const handleCanPlayThrough = () => {
+      console.log('AudioPlayer: Audio can play through (fully loaded)');
     };
 
     audio.addEventListener('timeupdate', updateTime);
@@ -51,6 +72,10 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
     audio.addEventListener('error', handleError);
     audio.addEventListener('loadstart', handleLoadStart);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('canplaythrough', handleCanPlayThrough);
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime);
@@ -58,19 +83,69 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('canplaythrough', handleCanPlayThrough);
     };
   }, [sermon]);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio) {
+      console.log('AudioPlayer: No audio element reference');
+      return;
+    }
+
+    console.log('AudioPlayer: isPlaying changed to:', isPlaying);
+    console.log('AudioPlayer: Audio readyState:', audio.readyState);
+    console.log('AudioPlayer: Audio paused:', audio.paused);
+    console.log('AudioPlayer: Audio current time:', audio.currentTime);
 
     if (isPlaying) {
-      audio.play();
+      // Ensure audio is ready before attempting to play
+      if (audio.readyState >= 2) { // HAVE_CURRENT_DATA
+        console.log('AudioPlayer: Attempting to play audio');
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('AudioPlayer: Play started successfully');
+            })
+            .catch(error => {
+              console.error('AudioPlayer: Play failed:', error);
+              console.error('AudioPlayer: Audio error code:', audio.error?.code);
+              console.error('AudioPlayer: Audio error message:', audio.error?.message);
+              // Call onPlayPause to sync the UI state
+              onPlayPause();
+            });
+        }
+      } else {
+        console.log('AudioPlayer: Audio not ready, waiting for canplay event');
+        const onCanPlay = () => {
+          console.log('AudioPlayer: Audio ready, now attempting to play');
+          const playPromise = audio.play();
+          
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log('AudioPlayer: Delayed play started successfully');
+              })
+              .catch(error => {
+                console.error('AudioPlayer: Delayed play failed:', error);
+                onPlayPause();
+              });
+          }
+          audio.removeEventListener('canplay', onCanPlay);
+        };
+        audio.addEventListener('canplay', onCanPlay);
+      }
     } else {
+      console.log('AudioPlayer: Pausing audio');
       audio.pause();
     }
-  }, [isPlaying]);
+  }, [isPlaying, onPlayPause]);
 
   useEffect(() => {
     const audio = audioRef.current;
