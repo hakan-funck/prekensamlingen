@@ -17,6 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Proxying audio request for file ID:', fileId);
       console.log('Google Drive URL:', googleDriveUrl);
+      console.log('Request headers:', req.headers.range ? `Range: ${req.headers.range}` : 'No range header');
       
       // Prepare headers to forward to Google Drive including Range
       const fetchHeaders: Record<string, string> = {
@@ -29,9 +30,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Forwarding Range header:', req.headers.range);
       }
       
-      // Fetch the file from Google Drive
+      // Fetch the file from Google Drive with redirect handling
       let response = await fetch(googleDriveUrl, {
-        headers: fetchHeaders
+        headers: fetchHeaders,
+        redirect: 'follow' // Follow redirects automatically
       });
       
       // Handle Google Drive interstitials/confirmation pages
