@@ -359,8 +359,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Bulk upload API for admin
-  app.post('/api/admin/bulk-upload', async (req, res) => {
+  // Admin authentication middleware
+  const validateAdminAuth = (req: any, res: any, next: any) => {
+    const adminSecret = process.env.ADMIN_SECRET || 'replit-admin-2024';
+    const providedSecret = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-admin-secret'];
+    
+    if (providedSecret !== adminSecret) {
+      return res.status(401).json({ error: 'Admin authentication required' });
+    }
+    next();
+  };
+
+  // Bulk upload API for admin (protected)
+  app.post('/api/admin/bulk-upload', validateAdminAuth, async (req, res) => {
     const { urls, updateSheet = false } = req.body;
 
     if (!urls || !Array.isArray(urls) || urls.length === 0) {
@@ -478,24 +489,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             continue;
           }
 
-          // Convert Web ReadableStream to Buffer for R2
-          const chunks: Uint8Array[] = [];
-          const reader = response.body.getReader();
-          
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-          }
-          
-          const buffer = Buffer.concat(chunks);
+          // Stream directly from Google Drive to R2 (no memory buffering)
+          const { Readable } = await import('stream');
+          const readable = Readable.fromWeb(response.body as any);
           
           const putCommand = new PutObjectCommand({
             Bucket: 'prekensamlingen',
             Key: r2Key,
-            Body: buffer,
-            ContentType: 'audio/mpeg',
-            ContentLength: buffer.length,
+            Body: readable,
+            ContentType: response.headers.get('content-type') || 'audio/mpeg',
+            ContentLength: response.headers.get('content-length') ? 
+              parseInt(response.headers.get('content-length')!) : undefined,
           });
 
           await r2Client.send(putCommand);

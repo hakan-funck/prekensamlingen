@@ -65,6 +65,7 @@ export default function AdminUpload() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-Admin-Secret': 'replit-admin-2024'
           },
           body: JSON.stringify({ 
             urls: [url],
