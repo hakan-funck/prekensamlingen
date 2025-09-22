@@ -28,6 +28,9 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
   const [isMuted, setIsMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState('1');
   const audioRef = useRef<HTMLAudioElement>(null);
+  const canplayHandlerRef = useRef<(() => void) | null>(null);
+  const desiredPlayingRef = useRef(false);
+  const lastUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -90,6 +93,35 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
     };
   }, [sermon]);
 
+  // Keep track of desired playing state to prevent race conditions
+  useEffect(() => {
+    desiredPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  // Effect A: Handle source changes only
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !sermon?.audioUrl) return;
+
+    // Only reset if URL actually changed
+    if (sermon.audioUrl !== lastUrlRef.current) {
+      lastUrlRef.current = sermon.audioUrl;
+      audio.pause();
+      audio.currentTime = 0;
+      setCurrentTime(0);
+      setDuration(0);
+      
+      // Clean up any pending canplay handler on source change
+      if (canplayHandlerRef.current) {
+        audio.removeEventListener('canplay', canplayHandlerRef.current);
+        canplayHandlerRef.current = null;
+      }
+      
+      console.log('AudioPlayer: Reset state for new source:', sermon.audioUrl);
+    }
+  }, [sermon?.audioUrl]);
+
+  // Effect B: Handle play/pause state only  
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) {
@@ -123,8 +155,25 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
         }
       } else {
         console.log('AudioPlayer: Audio not ready, waiting for canplay event');
+        
+        // Clean up any existing canplay handler
+        if (canplayHandlerRef.current) {
+          audio.removeEventListener('canplay', canplayHandlerRef.current);
+        }
+        
         const onCanPlay = () => {
           console.log('AudioPlayer: Audio ready, now attempting to play');
+          
+          // Check if still desired to be playing and source hasn't changed (prevent races)
+          if (!desiredPlayingRef.current) {
+            console.log('AudioPlayer: No longer playing, skipping delayed play');
+            return;
+          }
+          if (audio.src !== lastUrlRef.current) {
+            console.log('AudioPlayer: Source changed, skipping delayed play');
+            return;
+          }
+          
           const playPromise = audio.play();
           
           if (playPromise !== undefined) {
@@ -137,15 +186,31 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
                 onPlayPause();
               });
           }
-          audio.removeEventListener('canplay', onCanPlay);
+          canplayHandlerRef.current = null;
         };
-        audio.addEventListener('canplay', onCanPlay);
+        
+        canplayHandlerRef.current = onCanPlay;
+        audio.addEventListener('canplay', onCanPlay, { once: true });
       }
     } else {
       console.log('AudioPlayer: Pausing audio');
       audio.pause();
+      
+      // Clean up any pending canplay handler when pausing
+      if (canplayHandlerRef.current) {
+        audio.removeEventListener('canplay', canplayHandlerRef.current);
+        canplayHandlerRef.current = null;
+      }
     }
-  }, [isPlaying, onPlayPause]);
+    
+    // Cleanup function for when effect re-runs or component unmounts
+    return () => {
+      if (canplayHandlerRef.current && audioRef.current) {
+        audioRef.current.removeEventListener('canplay', canplayHandlerRef.current);
+        canplayHandlerRef.current = null;
+      }
+    };
+  }, [isPlaying, onPlayPause, sermon?.audioUrl]);
 
   useEffect(() => {
     const audio = audioRef.current;
