@@ -118,6 +118,7 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
       }
       
       console.log('AudioPlayer: Reset state for new source:', sermon.audioUrl);
+      console.log('AudioPlayer: lastUrlRef updated to:', lastUrlRef.current);
     }
   }, [sermon?.audioUrl]);
 
@@ -169,8 +170,11 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
             console.log('AudioPlayer: No longer playing, skipping delayed play');
             return;
           }
-          if (audio.src !== lastUrlRef.current) {
-            console.log('AudioPlayer: Source changed, skipping delayed play');
+          // Compare paths to handle relative vs absolute URL differences
+          const currentPath = new URL(audio.src).pathname;
+          const lastPath = lastUrlRef.current ? new URL(lastUrlRef.current, window.location.origin).pathname : null;
+          if (currentPath !== lastPath) {
+            console.log('AudioPlayer: Source changed, skipping delayed play', { currentPath, lastPath });
             return;
           }
           
