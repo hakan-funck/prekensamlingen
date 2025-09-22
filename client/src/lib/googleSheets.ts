@@ -79,7 +79,7 @@ function extractChapterFromReference(bookChapter: string): string {
 }
 
 // Convert language name to code
-export function convertLanguageToCode(lang: string): 'fi' | 'sv' | 'no' | 'en' | '-' {
+export function convertLanguageToCode(lang: string): 'fi' | 'sv' | 'no' | 'en' | 'ru' | '-' {
   if (!lang || lang.trim() === '' || lang === '-') return '-';
   
   const normalized = lang.toLowerCase().trim();
@@ -100,6 +100,10 @@ export function convertLanguageToCode(lang: string): 'fi' | 'sv' | 'no' | 'en' |
     case 'english':
     case 'en':
       return 'en';
+    case 'russisk':
+    case 'russian':
+    case 'ru':
+      return 'ru';
     default:
       return 'no'; // Default to Norwegian
   }

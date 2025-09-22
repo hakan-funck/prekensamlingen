@@ -14,9 +14,9 @@ export interface Sermon {
   bibleBook: string; // e.g., "Matt", "Joh", "Rom"
   bibleChapter: string; // e.g., "5", "10"
   bibleVerses: string; // e.g., "27-30", "1-14"
-  språk: 'fi' | 'sv' | 'no' | 'en'; // Language codes
+  språk: 'fi' | 'sv' | 'no' | 'en' | 'ru'; // Language codes
   tolk: string; // Interpreter name or "-"
-  tolkTilSpråk: 'fi' | 'sv' | 'no' | 'en' | '-'; // Language interpreted to
+  tolkTilSpråk: 'fi' | 'sv' | 'no' | 'en' | 'ru' | '-'; // Language interpreted to
   duration: string; // Format like "29:10", "1:02:34"
   sted: string; // Location where sermon was held
   kilde: string; // Source: Kassett, CD, Minnepenn, Youtube, etc.
