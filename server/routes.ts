@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 // Validate R2 environment variables
 const validateR2Config = () => {
@@ -200,22 +200,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('Fetching from R2 bucket:', bucketName, 'key:', objectKey);
         
-        const getObjectParams: any = {
+        // Check if we're in published environment
+        const isPublished = process.env.REPLIT_DEPLOYMENT !== undefined;
+        const publishedChunkLimit = 15 * 1024 * 1024; // 15MB initial chunk for published
+        
+        let getObjectParams: any = {
           Bucket: bucketName,
           Key: objectKey,
         };
         
-        // Handle Range requests properly
+        // For published environment, limit initial download of large files
+        if (isPublished && !req.headers.range) {
+          // First, get file size with HEAD request
+          try {
+            const headCommand = new HeadObjectCommand({
+              Bucket: bucketName,
+              Key: objectKey,
+            });
+            const headResponse = await r2Client.send(headCommand);
+            const fileSize = headResponse.ContentLength || 0;
+            
+            console.log(`File size: ${fileSize} bytes (${Math.round(fileSize/1024/1024)}MB)`);
+            
+            // If file is larger than 30MB, serve only first 15MB initially
+            if (fileSize > 30 * 1024 * 1024) {
+              getObjectParams.Range = `bytes=0-${publishedChunkLimit - 1}`;
+              console.log(`Published environment: Limiting large file to first ${Math.round(publishedChunkLimit/1024/1024)}MB chunk`);
+            }
+          } catch (headError: any) {
+            console.log('Could not get file size, proceeding with normal download:', headError.message);
+          }
+        }
+        
+        // Handle explicit Range requests with published environment clamping
         if (req.headers.range) {
-          getObjectParams.Range = req.headers.range;
-          console.log('Forwarding Range header to R2:', req.headers.range);
+          let rangeHeader = req.headers.range;
+          
+          // In published environment, clamp large range requests to prevent exceeding limits
+          if (isPublished) {
+            const rangeMatch = rangeHeader.match(/bytes=(\d+)-(\d*)/); 
+            if (rangeMatch) {
+              const start = parseInt(rangeMatch[1]);
+              const end = rangeMatch[2] ? parseInt(rangeMatch[2]) : undefined;
+              
+              // If range span exceeds limit, clamp the end
+              if (end === undefined || (end - start + 1) > publishedChunkLimit) {
+                const clampedEnd = start + publishedChunkLimit - 1;
+                rangeHeader = `bytes=${start}-${clampedEnd}`;
+                console.log(`Published environment: Clamped range from ${req.headers.range} to ${rangeHeader}`);
+              }
+            }
+          }
+          
+          getObjectParams.Range = rangeHeader;
+          console.log('Forwarding Range header to R2:', rangeHeader);
         }
         
         const command = new GetObjectCommand(getObjectParams);
         const r2Response = await r2Client.send(command);
         
-        // Set proper response status
-        const statusCode = req.headers.range ? 206 : 200;
+        // Set proper response status - 206 if any Range is used (client or server-initiated)
+        const hasRange = !!(req.headers.range || getObjectParams.Range);
+        const statusCode = hasRange ? 206 : 200;
         res.status(statusCode);
         
         // Set headers from R2 response
@@ -284,15 +330,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let googleDriveUrl = `https://drive.google.com/uc?export=download&id=${fileKey}`;
       console.log('Google Drive URL:', googleDriveUrl);
       
+      // Check if we're in published environment
+      const isPublished = process.env.REPLIT_DEPLOYMENT !== undefined;
+      const publishedChunkLimit = 15 * 1024 * 1024; // 15MB initial chunk for published
+      
       // Prepare headers to forward to Google Drive including Range
       const fetchHeaders: Record<string, string> = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       };
       
-      // Forward Range header if present
+      // For published environment without explicit range, limit initial download of large files
+      if (isPublished && !req.headers.range) {
+        let shouldLimitChunk = false;
+        
+        // First, try to get file size with HEAD request
+        try {
+          const headResponse = await fetch(googleDriveUrl, {
+            method: 'HEAD',
+            headers: fetchHeaders
+          });
+          
+          const contentLength = headResponse.headers.get('content-length');
+          const fileSize = contentLength ? parseInt(contentLength) : 0;
+          
+          console.log(`Google Drive file size: ${fileSize} bytes (${Math.round(fileSize/1024/1024)}MB)`);
+          
+          // If file is larger than 30MB, limit initial chunk
+          if (fileSize > 30 * 1024 * 1024) {
+            shouldLimitChunk = true;
+          }
+        } catch (headError: any) {
+          console.log('Google Drive HEAD request failed, applying precautionary chunk limit in published environment:', headError.message);
+          // In published environment, if we can't determine file size, limit chunk as precaution
+          shouldLimitChunk = true;
+        }
+        
+        if (shouldLimitChunk) {
+          fetchHeaders['Range'] = `bytes=0-${publishedChunkLimit - 1}`;
+          console.log(`Published environment: Limiting Google Drive file to first ${Math.round(publishedChunkLimit/1024/1024)}MB chunk`);
+        }
+      }
+      
+      // Forward explicit Range header if present (overrides our chunk limiting)
       if (req.headers.range) {
-        fetchHeaders['Range'] = req.headers.range;
-        console.log('Forwarding Range header:', req.headers.range);
+        let rangeHeader = req.headers.range;
+        
+        // In published environment, clamp large range requests to prevent exceeding limits
+        if (isPublished) {
+          const rangeMatch = rangeHeader.match(/bytes=(\d+)-(\d*)/); 
+          if (rangeMatch) {
+            const start = parseInt(rangeMatch[1]);
+            const end = rangeMatch[2] ? parseInt(rangeMatch[2]) : undefined;
+            
+            // If range span exceeds limit, clamp the end
+            if (end === undefined || (end - start + 1) > publishedChunkLimit) {
+              const clampedEnd = start + publishedChunkLimit - 1;
+              rangeHeader = `bytes=${start}-${clampedEnd}`;
+              console.log(`Published environment: Clamped Google Drive range from ${req.headers.range} to ${rangeHeader}`);
+            }
+          }
+        }
+        
+        fetchHeaders['Range'] = rangeHeader;
+        console.log('Forwarding Range header:', rangeHeader);
       }
       
       // Fetch the file from Google Drive with redirect handling
