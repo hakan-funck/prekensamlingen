@@ -209,28 +209,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           Key: objectKey,
         };
         
-        // For published environment, limit initial download of large files
-        if (isPublished && !req.headers.range) {
-          // First, get file size with HEAD request
-          try {
-            const headCommand = new HeadObjectCommand({
-              Bucket: bucketName,
-              Key: objectKey,
-            });
-            const headResponse = await r2Client.send(headCommand);
-            const fileSize = headResponse.ContentLength || 0;
-            
-            console.log(`File size: ${fileSize} bytes (${Math.round(fileSize/1024/1024)}MB)`);
-            
-            // If file is larger than 30MB, serve only first 15MB initially
-            if (fileSize > 30 * 1024 * 1024) {
-              getObjectParams.Range = `bytes=0-${publishedChunkLimit - 1}`;
-              console.log(`Published environment: Limiting large file to first ${Math.round(publishedChunkLimit/1024/1024)}MB chunk`);
-            }
-          } catch (headError: any) {
-            console.log('Could not get file size, proceeding with normal download:', headError.message);
-          }
-        }
+        // Note: Removed automatic chunking for large files without Range headers
+        // Direct browser access should get full files - chunking only applies to explicit Range requests
         
         // Handle explicit Range requests with published environment clamping
         if (req.headers.range) {
@@ -339,37 +319,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       };
       
-      // For published environment without explicit range, limit initial download of large files
-      if (isPublished && !req.headers.range) {
-        let shouldLimitChunk = false;
-        
-        // First, try to get file size with HEAD request
-        try {
-          const headResponse = await fetch(googleDriveUrl, {
-            method: 'HEAD',
-            headers: fetchHeaders
-          });
-          
-          const contentLength = headResponse.headers.get('content-length');
-          const fileSize = contentLength ? parseInt(contentLength) : 0;
-          
-          console.log(`Google Drive file size: ${fileSize} bytes (${Math.round(fileSize/1024/1024)}MB)`);
-          
-          // If file is larger than 30MB, limit initial chunk
-          if (fileSize > 30 * 1024 * 1024) {
-            shouldLimitChunk = true;
-          }
-        } catch (headError: any) {
-          console.log('Google Drive HEAD request failed, applying precautionary chunk limit in published environment:', headError.message);
-          // In published environment, if we can't determine file size, limit chunk as precaution
-          shouldLimitChunk = true;
-        }
-        
-        if (shouldLimitChunk) {
-          fetchHeaders['Range'] = `bytes=0-${publishedChunkLimit - 1}`;
-          console.log(`Published environment: Limiting Google Drive file to first ${Math.round(publishedChunkLimit/1024/1024)}MB chunk`);
-        }
-      }
+      // Note: Removed automatic chunking for large files without Range headers  
+      // Direct browser access should get full files - chunking only applies to explicit Range requests
       
       // Forward explicit Range header if present (overrides our chunk limiting)
       if (req.headers.range) {
