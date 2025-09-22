@@ -244,16 +244,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('  Content-Range:', r2Response.ContentRange);
         console.log('Headers sent - Status:', statusCode, 'Content-Length:', r2Response.ContentLength, 'Range:', r2Response.ContentRange ? 'Yes' : 'No');
         
-        // Stream the R2 object body with simple error handling
+        // Stream the R2 object body with chunked streaming for published apps
         if (r2Response.Body) {
           try {
             const readable = r2Response.Body as any;
             
-            // Simple pipe - much more reliable than complex pipeline
-            readable.pipe(res);
+            // Detect if we're in a published environment (has REPLIT_DEPLOYMENT defined)
+            const isPublished = process.env.REPLIT_DEPLOYMENT !== undefined;
+            const maxChunkSize = isPublished ? 1024 * 1024 : 8 * 1024 * 1024; // 1MB for published, 8MB for dev
+            
+            if (isPublished) {
+              console.log('Published environment detected - using chunked streaming with 1MB chunks');
+              
+              // Chunked streaming for published apps
+              let totalStreamed = 0;
+              readable.on('data', (chunk: Buffer) => {
+                if (res.destroyed || res.writableEnded) {
+                  readable.destroy();
+                  return;
+                }
+                
+                // Process in smaller chunks if needed
+                let offset = 0;
+                while (offset < chunk.length) {
+                  if (res.destroyed || res.writableEnded) {
+                    readable.destroy();
+                    return;
+                  }
+                  
+                  const chunkEnd = Math.min(offset + maxChunkSize, chunk.length);
+                  const smallChunk = chunk.subarray(offset, chunkEnd);
+                  
+                  const writeSuccessful = res.write(smallChunk);
+                  if (!writeSuccessful) {
+                    // Wait for drain event before continuing
+                    res.once('drain', () => {
+                      // Continue processing will happen in next iteration
+                    });
+                    break;
+                  }
+                  
+                  offset = chunkEnd;
+                  totalStreamed += smallChunk.length;
+                  
+                  // Small delay between chunks to prevent bandwidth throttling
+                  if (offset < chunk.length) {
+                    setImmediate(() => {});
+                  }
+                }
+              });
+              
+              readable.on('end', () => {
+                console.log(`Chunked streaming completed: ${totalStreamed} bytes streamed`);
+                res.end();
+              });
+              
+            } else {
+              console.log('Development environment - using simple pipe streaming');
+              // Simple pipe for development (current approach)
+              readable.pipe(res);
+            }
             
             readable.on('error', (error: any) => {
               console.error('R2 stream error:', error);
+              if (!res.headersSent) {
+                res.status(500).json({ error: 'R2 streaming error' });
+              }
             });
             
             res.on('close', () => {
