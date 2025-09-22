@@ -268,63 +268,165 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
   if (!sermon) return null;
 
   return (
-    <Card className="fixed bottom-0 left-0 right-0 z-50 rounded-none border-t bg-card/95 backdrop-blur-sm">
-      <div className="flex items-center gap-4 p-4">
-        {/* Audio element */}
-        <audio
-          ref={audioRef}
-          src={sermon.audioUrl}
-          crossOrigin="anonymous"
-          preload="metadata"
-          onEnded={() => onClose()}
-        />
+    <Card className="fixed bottom-0 left-0 right-0 z-50 rounded-none border-t bg-card/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]">
+      {/* Audio element */}
+      <audio
+        ref={audioRef}
+        src={sermon.audioUrl}
+        crossOrigin="anonymous"
+        preload="metadata"
+        onEnded={() => onClose()}
+      />
 
-        {/* Sermon Info */}
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate" data-testid="text-current-sermon-title">
-            {sermon.speaker} - {sermon.bibleBook} {sermon.bibleChapter}:{sermon.bibleVerses}
-          </h4>
-          <p className="text-xs text-muted-foreground truncate">
-            {sermon.speaker}
-          </p>
+      {/* Mobile: Two-row layout, Desktop: Single row */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4">
+        
+        {/* First row: Info and controls */}
+        <div className="flex items-center gap-3 sm:gap-4 flex-1">
+          {/* Sermon Info */}
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm truncate" data-testid="text-current-sermon-title">
+              {sermon.speaker} - {sermon.bibleBook} {sermon.bibleChapter}:{sermon.bibleVerses}
+            </h4>
+            <p className="text-xs text-muted-foreground truncate">
+              {sermon.speaker}
+            </p>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => skip(-15)}
+              data-testid="button-skip-back"
+            >
+              <SkipBack className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              size="icon"
+              onClick={onPlayPause}
+              data-testid="button-play-pause-player"
+            >
+              {isPlaying ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+            </Button>
+            
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => skip(15)}
+              data-testid="button-skip-forward"
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Desktop: Progress inline */}
+          <div className="hidden sm:flex items-center gap-2 flex-1">
+            <span className="text-xs text-muted-foreground w-10">
+              {formatTime(currentTime)}
+            </span>
+            <Slider
+              value={[currentTime]}
+              onValueChange={handleSeek}
+              max={duration}
+              step={1}
+              className="flex-1"
+              data-testid="slider-progress"
+            />
+            <span className="text-xs text-muted-foreground w-10">
+              {formatTime(duration)}
+            </span>
+          </div>
+
+          {/* Settings and Controls */}
+          <div className="flex items-center gap-1">
+            {/* Playback Speed */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  data-testid="button-playback-speed"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Avspillingshastighet</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup 
+                  value={playbackRate} 
+                  onValueChange={setPlaybackRate}
+                >
+                  <DropdownMenuRadioItem value="0.75">0.75x</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="1">1x (Normal)</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="1.25">1.25x</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="1.5">1.5x</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="2">2x</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Volume - Desktop only */}
+            <div className="hidden sm:flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={toggleMute}
+                data-testid="button-mute"
+              >
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </Button>
+              <Slider
+                value={[isMuted ? 0 : volume]}
+                onValueChange={handleVolumeChange}
+                max={1}
+                step={0.1}
+                className="w-20"
+                data-testid="slider-volume"
+              />
+            </div>
+
+            {/* Mobile: Volume button only */}
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={toggleMute}
+              data-testid="button-mute-mobile"
+              className="sm:hidden"
+            >
+              {isMuted ? (
+                <VolumeX className="h-4 w-4" />
+              ) : (
+                <Volume2 className="h-4 w-4" />
+              )}
+            </Button>
+
+            {/* Close Button */}
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={onClose}
+              data-testid="button-close-player"
+            >
+              ×
+            </Button>
+          </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-2">
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => skip(-15)}
-            data-testid="button-skip-back"
-          >
-            <SkipBack className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            size="icon"
-            onClick={onPlayPause}
-            data-testid="button-play-pause-player"
-          >
-            {isPlaying ? (
-              <Pause className="h-4 w-4" />
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-          </Button>
-          
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => skip(15)}
-            data-testid="button-skip-forward"
-          >
-            <SkipForward className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Progress */}
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <span className="text-xs text-muted-foreground w-10">
+        {/* Second row: Progress timeline - Mobile only */}
+        <div className="flex sm:hidden items-center gap-3 px-1">
+          <span className="text-xs text-muted-foreground w-12 text-right">
             {formatTime(currentTime)}
           </span>
           <Slider
@@ -332,74 +434,13 @@ export function AudioPlayer({ sermon, isPlaying, onPlayPause, onClose }: AudioPl
             onValueChange={handleSeek}
             max={duration}
             step={1}
-            className="flex-1"
-            data-testid="slider-progress"
+            className="flex-1 h-8"
+            data-testid="slider-progress-mobile"
           />
-          <span className="text-xs text-muted-foreground w-10">
+          <span className="text-xs text-muted-foreground w-12">
             {formatTime(duration)}
           </span>
         </div>
-
-        {/* Playback Speed */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="icon"
-              variant="ghost"
-              data-testid="button-playback-speed"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Avspillingshastighet</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup 
-              value={playbackRate} 
-              onValueChange={setPlaybackRate}
-            >
-              <DropdownMenuRadioItem value="0.75">0.75x</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="1">1x (Normal)</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="1.25">1.25x</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="1.5">1.5x</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="2">2x</DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Volume */}
-        <div className="flex items-center gap-2">
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={toggleMute}
-            data-testid="button-mute"
-          >
-            {isMuted ? (
-              <VolumeX className="h-4 w-4" />
-            ) : (
-              <Volume2 className="h-4 w-4" />
-            )}
-          </Button>
-          <Slider
-            value={[isMuted ? 0 : volume]}
-            onValueChange={handleVolumeChange}
-            max={1}
-            step={0.1}
-            className="w-20"
-            data-testid="slider-volume"
-          />
-        </div>
-
-        {/* Close Button */}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={onClose}
-          data-testid="button-close-player"
-        >
-          ×
-        </Button>
       </div>
     </Card>
   );
