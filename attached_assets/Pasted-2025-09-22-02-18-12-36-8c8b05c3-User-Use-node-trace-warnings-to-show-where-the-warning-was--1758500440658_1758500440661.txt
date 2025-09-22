@@ -1,0 +1,160 @@
+2025-09-22 02:18:12.36
+8c8b05c3
+User
+(Use `node --trace-warnings ...` to show where the warning was created)
+2025-09-22 02:18:12.37
+8c8b05c3
+User
+Client disconnected, destroying R2 stream
+2025-09-22 02:18:20.10
+8c8b05c3
+User
+Proxying audio request for: sermons/1996-05-0_Elis_Snellman_Joh17_Erkheikki.mp3 Type: r2
+2025-09-22 02:18:20.10
+8c8b05c3
+User
+Request headers: Range: bytes=0-
+2025-09-22 02:18:20.10
+8c8b05c3
+User
+Fetching from R2 bucket: prekensamlingen key: sermons/1996-05-0_Elis_Snellman_Joh17_Erkheikki.mp3
+2025-09-22 02:18:20.10
+8c8b05c3
+User
+Forwarding Range header to R2: bytes=0-
+2025-09-22 02:18:20.30
+8c8b05c3
+User
+R2 Response - Status: 206 Content-Length: 33796608
+2025-09-22 02:18:20.30
+8c8b05c3
+User
+R2 Response Headers:
+2025-09-22 02:18:20.30
+8c8b05c3
+User
+Content-Type: audio/mpeg
+2025-09-22 02:18:20.30
+8c8b05c3
+User
+Content-Range: bytes 0-33796607/33796608
+2025-09-22 02:18:20.30
+8c8b05c3
+User
+Headers sent - Status: 206 Content-Length: 33796608 Range: Yes
+2025-09-22 02:18:20.30
+8c8b05c3
+User
+Published environment detected - using chunked streaming with 1MB chunks
+2025-09-22 02:18:21.01
+8c8b05c3
+User
+Chunked streaming completed: 5738496 bytes streamed
+2025-09-22 02:18:21.01
+8c8b05c3
+User
+12:18:21 AM [express] GET /api/audio/sermons/1996-05-0_Elis_Snellman_Joh17_Erkheikki.mp3 206 in 911ms
+2025-09-22 02:18:33.37
+8c8b05c3
+User
+Proxying audio request for: sermons/K_Suhr_Jer_31.mp3 Type: r2
+2025-09-22 02:18:33.37
+8c8b05c3
+User
+Request headers: Range: bytes=0-
+2025-09-22 02:18:33.37
+8c8b05c3
+User
+Fetching from R2 bucket: prekensamlingen key: sermons/K_Suhr_Jer_31.mp3
+2025-09-22 02:18:33.37
+8c8b05c3
+User
+Forwarding Range header to R2: bytes=0-
+2025-09-22 02:18:33.54
+8c8b05c3
+User
+R2 Response - Status: 206 Content-Length: 14580811
+2025-09-22 02:18:33.54
+8c8b05c3
+User
+R2 Response Headers:
+2025-09-22 02:18:33.54
+8c8b05c3
+User
+Content-Type: audio/mpeg
+2025-09-22 02:18:33.54
+8c8b05c3
+User
+Content-Range: bytes 0-14580810/14580811
+2025-09-22 02:18:33.54
+8c8b05c3
+User
+Headers sent - Status: 206 Content-Length: 14580811 Range: Yes
+2025-09-22 02:18:33.54
+8c8b05c3
+User
+Published environment detected - using chunked streaming with 1MB chunks
+2025-09-22 02:18:33.76
+8c8b05c3
+User
+Chunked streaming completed: 3587147 bytes streamed
+2025-09-22 02:18:33.76
+8c8b05c3
+User
+12:18:33 AM [express] GET /api/audio/sermons/K_Suhr_Jer_31.mp3 206 in 387ms
+2025-09-22 02:19:04.04
+8c8b05c3
+User
+Proxying audio request for: sermons/1996-05-0_Elis_Snellman_Joh17_Erkheikki.mp3 Type: r2
+2025-09-22 02:19:04.04
+8c8b05c3
+User
+Request headers: Range: bytes=0-
+2025-09-22 02:19:04.04
+8c8b05c3
+User
+Fetching from R2 bucket: prekensamlingen key: sermons/1996-05-0_Elis_Snellman_Joh17_Erkheikki.mp3
+2025-09-22 02:19:04.04
+8c8b05c3
+User
+Forwarding Range header to R2: bytes=0-
+2025-09-22 02:19:04.21
+8c8b05c3
+User
+R2 Response - Status: 206 Content-Length: 33796608
+2025-09-22 02:19:04.21
+8c8b05c3
+User
+R2 Response Headers:
+2025-09-22 02:19:04.21
+8c8b05c3
+User
+Content-Type: audio/mpeg
+2025-09-22 02:19:04.21
+8c8b05c3
+User
+Content-Range: bytes 0-33796607/33796608
+2025-09-22 02:19:04.21
+8c8b05c3
+User
+Headers sent - Status: 206 Content-Length: 33796608 Range: Yes
+2025-09-22 02:19:04.21
+8c8b05c3
+User
+Published environment detected - using chunked streaming with 1MB chunks
+2025-09-22 02:19:04.83
+8c8b05c3
+User
+Chunked streaming completed: 5427547 bytes streamed
+2025-09-22 02:19:04.83
+8c8b05c3
+User
+12:19:04 AM [express] GET /api/audio/sermons/1996-05-0_Elis_Snellman_Joh17_Erkheikki.mp3 206 in 785ms
+2025-09-22 02:19:10.40
+485a9a7b
+System
+system: received signal terminated
+
+Wrap
+
+Colors
