@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { SearchBar } from "./SearchBar";
 import { FilterPanel } from "./FilterPanel";
 import { ThemeToggle } from "./ThemeToggle";
+import { InstallPWA } from "./InstallPWA";
 import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
@@ -77,6 +78,7 @@ export function Header({
               onInterpreterChange={onInterpreterChange}
               activeFiltersCount={activeFiltersCount}
             />
+            <InstallPWA />
             <Button variant="ghost" size="sm" className="gap-2" data-testid="button-about" asChild>
               <Link href="/about">
                 <Info className="h-4 w-4" />
@@ -114,6 +116,7 @@ export function Header({
                 onInterpreterChange={onInterpreterChange}
                 activeFiltersCount={activeFiltersCount}
               />
+              <InstallPWA />
               <Button variant="ghost" size="sm" className="gap-1 sm:gap-2" data-testid="button-about" asChild>
                 <Link href="/about">
                   <Info className="h-4 w-4" />
