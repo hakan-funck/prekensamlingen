@@ -42,8 +42,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Clone response to cache
-          if (response && response.status === 200) {
+          // Clone response to cache (accept both 200 and 206 responses for audio)
+          if (response && (response.status === 200 || response.status === 206)) {
             const responseToCache = response.clone();
             caches.open(AUDIO_CACHE_NAME).then((cache) => {
               cache.put(request, responseToCache);
