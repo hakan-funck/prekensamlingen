@@ -1,6 +1,6 @@
 // Service Worker for Prekensamlingen PWA
-const CACHE_NAME = 'prekensamlingen-v2';
-const AUDIO_CACHE_NAME = 'audio-cache-v2';
+const CACHE_NAME = 'prekensamlingen-v3';
+const AUDIO_CACHE_NAME = 'audio-cache-v3';
 
 // Files to cache immediately
 const STATIC_ASSETS = [
@@ -36,6 +36,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+
+  // Skip caching for non-http(s) requests (chrome-extension, etc.)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
 
   // Handle audio streaming with network-first strategy
   if (url.pathname.startsWith('/api/audio')) {
