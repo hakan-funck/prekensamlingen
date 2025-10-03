@@ -57,10 +57,8 @@ export default function Home() {
           </p>
           <p className="text-sm text-muted-foreground">
             Les mer under{' '}
-            <Link href="/about">
-              <a className="text-primary hover:text-primary/80 underline underline-offset-4" data-testid="link-about">
-                Om Prekensamlingen
-              </a>
+            <Link href="/about" className="text-primary hover:text-primary/80 underline underline-offset-4" data-testid="link-about">
+              Om Prekensamlingen
             </Link>
             .
           </p>

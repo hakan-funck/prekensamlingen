@@ -8,7 +8,7 @@ import { fetchSermonsFromSheet, type RawSermonData } from '@/lib/googleSheets';
 import { parseSermonFromUrl, findSermonFromCriteria } from '@/lib/shareUtils';
 import { useToast } from '@/hooks/use-toast';
 
-export default function Home() {
+export default function Browse() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpeaker, setSelectedSpeaker] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | string | null>(null);
