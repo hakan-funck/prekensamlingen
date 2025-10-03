@@ -31,13 +31,12 @@ export default function Browse() {
       params.delete('openFilters');
       const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
       window.history.replaceState({}, '', newUrl);
-      
-      // Reset after a short delay to prevent re-opening on re-renders
-      setTimeout(() => {
-        setShouldOpenFilters(false);
-      }, 100);
     }
   }, []);
+
+  const handleFiltersOpened = () => {
+    setShouldOpenFilters(false);
+  };
 
   // Fetch real sermon data from Google Sheets
   useEffect(() => {
@@ -349,6 +348,7 @@ export default function Browse() {
         onInterpreterChange={setSelectedInterpreter}
         activeFiltersCount={activeFiltersCount}
         defaultOpenFilters={shouldOpenFilters}
+        onFiltersOpened={handleFiltersOpened}
       />
       
       <main className="container mx-auto px-4 py-8 pt-32 xl:pt-24">

@@ -34,6 +34,7 @@ interface FilterPanelProps {
   onInterpreterChange: (interpreter: string | null) => void;
   activeFiltersCount: number;
   defaultOpen?: boolean;
+  onOpened?: () => void;
 }
 
 export function FilterPanel({
@@ -51,6 +52,7 @@ export function FilterPanel({
   onInterpreterChange,
   activeFiltersCount,
   defaultOpen = false,
+  onOpened,
 }: FilterPanelProps) {
   const [open, setOpen] = useState(defaultOpen);
   const hasOpenedRef = useRef(false);
@@ -59,8 +61,12 @@ export function FilterPanel({
     if (defaultOpen && !hasOpenedRef.current) {
       setOpen(true);
       hasOpenedRef.current = true;
+      // Notify parent that panel has opened
+      if (onOpened) {
+        onOpened();
+      }
     }
-  }, [defaultOpen]);
+  }, [defaultOpen, onOpened]);
   const handleSpeakerChange = (value: string) => {
     if (value === 'all') {
       onSpeakerChange(null);
