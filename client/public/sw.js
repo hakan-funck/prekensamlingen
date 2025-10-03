@@ -1,6 +1,6 @@
 // Service Worker for Prekensamlingen PWA
-const CACHE_NAME = 'prekensamlingen-v3';
-const AUDIO_CACHE_NAME = 'audio-cache-v3';
+const CACHE_NAME = 'prekensamlingen-v4';
+const AUDIO_CACHE_NAME = 'audio-cache-v4';
 
 // Files to cache immediately
 const STATIC_ASSETS = [

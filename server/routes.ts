@@ -664,6 +664,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check sermon count from Google Sheets
+  app.get('/api/debug/sermons', async (req, res) => {
+    try {
+      const spreadsheetId = '1mKk16Z1sJ--Dj5GQCVOJE7erRClYAsVUaSiql_RsZfg';
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`;
+      
+      const response = await fetch(csvUrl);
+      if (!response.ok) {
+        return res.status(500).json({ error: `Failed to fetch: ${response.status}` });
+      }
+      
+      const csvText = await response.text();
+      const rows = csvText.split('\n');
+      const dataRows = rows.slice(4); // Skip first 4 header rows
+      const validRows = dataRows.filter(row => {
+        if (!row || row.trim() === '') return false;
+        const fields = row.split(',');
+        return fields.length >= 10; // Minimum required columns
+      });
+      
+      res.json({
+        totalRows: rows.length,
+        headerRows: 4,
+        dataRows: dataRows.length,
+        validSermons: validRows.length,
+        rowsFiltered: dataRows.length - validRows.length,
+        message: `${validRows.length} sermons should be visible in the app`
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        error: 'Failed to fetch sermons', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
