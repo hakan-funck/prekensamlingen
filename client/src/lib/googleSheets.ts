@@ -112,15 +112,7 @@ export function convertLanguageToCode(lang: string): 'fi' | 'sv' | 'no' | 'en' |
 // Parse CSV row to sermon data
 export function parseSermonRow(row: string[], index: number): RawSermonData | null {
   // Skip first 4 rows (header/metadata) and empty rows - data starts from row 5 (index 4)
-  if (index < 4) {
-    return null;
-  }
-  
-  if (!row || row.length < 10) {
-    // Log rows that are being filtered out to help debug
-    if (index >= 4 && row && row.length > 0) {
-      console.warn(`⚠️ Row ${index + 1} skipped: only ${row.length} columns (need at least 10). Speaker: "${row[0]?.substring(0, 30) || 'empty'}"`);
-    }
+  if (index < 4 || !row || row.length < 10) {
     return null;
   }
   
@@ -189,12 +181,6 @@ export async function fetchSermonsFromSheet(spreadsheetId: string, limit?: numbe
     const sermons = rows
       .map((row, index) => parseSermonRow(row, index))
       .filter((sermon): sermon is RawSermonData => sermon !== null);
-    
-    // Debug logging to help troubleshoot missing sermons
-    console.log(`📊 Google Sheets parsing:
-    - Total rows fetched: ${rows.length}
-    - Valid sermons parsed: ${sermons.length}
-    - Rows filtered out: ${rows.length - sermons.length - 4} (excluding 4 header rows)`);
     
     return limit ? sermons.slice(0, limit) : sermons;
   } catch (error) {
