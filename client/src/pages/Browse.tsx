@@ -19,7 +19,20 @@ export default function Browse() {
   const [allSermons, setAllSermons] = useState<Sermon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shouldOpenFilters, setShouldOpenFilters] = useState(false);
   const { toast } = useToast();
+
+  // Check for openFilters URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('openFilters') === 'true') {
+      setShouldOpenFilters(true);
+      // Remove the parameter from URL
+      params.delete('openFilters');
+      const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
 
   // Fetch real sermon data from Google Sheets
   useEffect(() => {
@@ -330,6 +343,7 @@ export default function Browse() {
         selectedInterpreter={selectedInterpreter}
         onInterpreterChange={setSelectedInterpreter}
         activeFiltersCount={activeFiltersCount}
+        defaultOpenFilters={shouldOpenFilters}
       />
       
       <main className="container mx-auto px-4 py-8 pt-32 xl:pt-24">

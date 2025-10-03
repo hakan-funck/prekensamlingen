@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Calendar, User, BookOpen, Filter, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,7 @@ interface FilterPanelProps {
   selectedInterpreter: string | null;
   onInterpreterChange: (interpreter: string | null) => void;
   activeFiltersCount: number;
+  defaultOpen?: boolean;
 }
 
 export function FilterPanel({
@@ -48,7 +50,15 @@ export function FilterPanel({
   selectedInterpreter,
   onInterpreterChange,
   activeFiltersCount,
+  defaultOpen = false,
 }: FilterPanelProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    if (defaultOpen) {
+      setOpen(true);
+    }
+  }, [defaultOpen]);
   const handleSpeakerChange = (value: string) => {
     if (value === 'all') {
       onSpeakerChange(null);
@@ -91,7 +101,7 @@ export function FilterPanel({
   };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" className="relative" data-testid="button-filter">
           <Filter className="h-4 w-4 mr-2" />

@@ -22,6 +22,7 @@ interface HeaderProps {
   selectedInterpreter: string | null;
   onInterpreterChange: (interpreter: string | null) => void;
   activeFiltersCount: number;
+  defaultOpenFilters?: boolean;
 }
 
 export function Header({
@@ -40,6 +41,7 @@ export function Header({
   selectedInterpreter,
   onInterpreterChange,
   activeFiltersCount,
+  defaultOpenFilters = false,
 }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b supports-[backdrop-filter]:bg-background/60 pt-[env(safe-area-inset-top)]">
@@ -79,6 +81,7 @@ export function Header({
               selectedInterpreter={selectedInterpreter}
               onInterpreterChange={onInterpreterChange}
               activeFiltersCount={activeFiltersCount}
+              defaultOpen={defaultOpenFilters}
             />
             <InstallPWA />
             <Button variant="ghost" size="sm" className="gap-2" data-testid="button-about" asChild>
@@ -119,6 +122,7 @@ export function Header({
                 selectedInterpreter={selectedInterpreter}
                 onInterpreterChange={onInterpreterChange}
                 activeFiltersCount={activeFiltersCount}
+                defaultOpen={defaultOpenFilters}
               />
               <InstallPWA />
               <Button variant="ghost" size="sm" className="gap-1 sm:gap-2" data-testid="button-about" asChild>

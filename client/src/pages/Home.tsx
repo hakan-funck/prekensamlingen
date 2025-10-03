@@ -81,7 +81,7 @@ export default function Home() {
                 data-testid="button-search-sermons"
                 asChild
               >
-                <Link href="/prekener">
+                <Link href="/prekener?openFilters=true">
                   <Search className="h-4 w-4 mr-2" />
                   Søk og filtrer prekener
                 </Link>
