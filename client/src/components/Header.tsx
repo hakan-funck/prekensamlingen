@@ -47,12 +47,14 @@ export function Header({
         {/* Desktop Layout: All in one row */}
         <div className="hidden xl:flex items-center gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 shrink-0">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-serif font-semibold text-foreground">
-              Prekensamlingen
-            </h1>
-          </div>
+          <Link href="/">
+            <a className="flex items-center gap-2 shrink-0 hover-elevate active-elevate-2 px-2 py-1 -ml-2 rounded-md transition-colors" data-testid="link-home">
+              <BookOpen className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-serif font-semibold text-foreground">
+                Prekensamlingen
+              </h1>
+            </a>
+          </Link>
 
           {/* Search */}
           <SearchBar
@@ -93,12 +95,14 @@ export function Header({
         <div className="xl:hidden space-y-3">
           {/* Row 1: Logo + Controls */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-primary" />
-              <h1 className="text-lg sm:text-xl font-serif font-semibold text-foreground">
-                Prekensamlingen
-              </h1>
-            </div>
+            <Link href="/">
+              <a className="flex items-center gap-2 hover-elevate active-elevate-2 px-2 py-1 -ml-2 rounded-md transition-colors" data-testid="link-home-mobile">
+                <BookOpen className="h-6 w-6 text-primary" />
+                <h1 className="text-lg sm:text-xl font-serif font-semibold text-foreground">
+                  Prekensamlingen
+                </h1>
+              </a>
+            </Link>
             
             <div className="flex items-center gap-1 sm:gap-2">
               <FilterPanel
