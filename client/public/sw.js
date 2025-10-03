@@ -1,6 +1,7 @@
 // Service Worker for Prekensamlingen PWA
-const CACHE_NAME = 'prekensamlingen-v4';
-const AUDIO_CACHE_NAME = 'audio-cache-v4';
+const CACHE_NAME = 'prekensamlingen-v5';
+const AUDIO_CACHE_NAME = 'audio-cache-v5';
+const JS_CACHE_NAME = 'js-cache-v5';
 
 // Files to cache immediately
 const STATIC_ASSETS = [
@@ -24,7 +25,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME && name !== AUDIO_CACHE_NAME)
+          .filter((name) => name !== CACHE_NAME && name !== AUDIO_CACHE_NAME && name !== JS_CACHE_NAME)
           .map((name) => caches.delete(name))
       );
     })
@@ -64,12 +65,56 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle API requests with network-first strategy
+  // Handle API requests with network-first strategy (no caching for fresh data)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          // Clone and cache successful responses
+        .catch(() => {
+          // Only use cache as fallback if network fails
+          return caches.match(request).then(cached => {
+            if (cached) {
+              return cached;
+            }
+            // Return a fallback response if both fail
+            return new Response(JSON.stringify({ error: 'Offline and no cached data available' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          });
+        })
+    );
+    return;
+  }
+
+  // Handle JavaScript/CSS with network-first strategy for fresh code
+  if (url.pathname.match(/\.(js|css|jsx|tsx|ts)$/)) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(JS_CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // Handle images and fonts with cache-first strategy
+  if (url.pathname.match(/\.(png|jpg|jpeg|svg|ico|woff|woff2|ttf|eot)$/)) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(request).then((response) => {
           if (response && response.status === 200) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -77,22 +122,16 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return response;
-        })
-        .catch(() => {
-          return caches.match(request);
-        })
+        });
+      })
     );
     return;
   }
 
-  // Handle other requests with cache-first strategy
+  // Handle other requests with network-first strategy
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(request).then((response) => {
-        // Cache successful responses
+    fetch(request)
+      .then((response) => {
         if (response && response.status === 200) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -100,7 +139,9 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return response;
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(request);
+      })
   );
 });
