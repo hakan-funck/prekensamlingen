@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Calendar, User, BookOpen, Filter, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,10 +53,12 @@ export function FilterPanel({
   defaultOpen = false,
 }: FilterPanelProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const hasOpenedRef = useRef(false);
 
   useEffect(() => {
-    if (defaultOpen) {
+    if (defaultOpen && !hasOpenedRef.current) {
       setOpen(true);
+      hasOpenedRef.current = true;
     }
   }, [defaultOpen]);
   const handleSpeakerChange = (value: string) => {
