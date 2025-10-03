@@ -31,6 +31,11 @@ export default function Browse() {
       params.delete('openFilters');
       const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
       window.history.replaceState({}, '', newUrl);
+      
+      // Reset after a short delay to prevent re-opening on re-renders
+      setTimeout(() => {
+        setShouldOpenFilters(false);
+      }, 100);
     }
   }, []);
 
