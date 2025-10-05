@@ -34,7 +34,7 @@ export default function About() {
                   <strong className="text-foreground">Prekensamlingen</strong> er en web-app som er laget for å gjøre Guds ord lett tilgjengelig for alle som ønsker å lytte. Samlingen består av lydopptak av prekener fra gudstjenester, samlinger og stevner.
                 </p>
                 <p>
-                  Talene har ulike kilder, og mange av dem er hentet fra private opptak, CD-er, minnepinner eller publiserte opptak fra forsamlinger.
+                  Talene har ulike kilder, og mange av dem er hentet fra private opptak, CD-er, minnepinner eller publiserte opptak fra forsamlinger. Prekensamlingen er på adressen prekensamlingen.replit.app og kan installeres som app (se nedenfor).
                 </p>
               </div>
             </CardContent>
