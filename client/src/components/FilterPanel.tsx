@@ -54,16 +54,22 @@ export function FilterPanel({
   defaultOpen = false,
   onOpened,
 }: FilterPanelProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(false);
   const hasOpenedRef = useRef(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (defaultOpen && !hasOpenedRef.current) {
-      setOpen(true);
-      hasOpenedRef.current = true;
-      // Notify parent that panel has opened
-      if (onOpened) {
-        onOpened();
+      // Only open if this FilterPanel's trigger is actually visible
+      const isVisible = triggerRef.current?.offsetParent !== null;
+      
+      if (isVisible) {
+        setOpen(true);
+        hasOpenedRef.current = true;
+        // Notify parent that panel has opened
+        if (onOpened) {
+          onOpened();
+        }
       }
     }
   }, [defaultOpen, onOpened]);
@@ -111,7 +117,7 @@ export function FilterPanel({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" className="relative" data-testid="button-filter">
+        <Button ref={triggerRef} variant="outline" className="relative" data-testid="button-filter">
           <Filter className="h-4 w-4 mr-2" />
           Filtrer
           {activeFiltersCount > 0 && (
