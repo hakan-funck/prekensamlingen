@@ -48,6 +48,34 @@ export default function About() {
                 <p>
                   For å gjøre det enklere å finne det du leter etter, er appen utstyrt med flere filterfunksjoner. Du kan filtrere taler basert på bibelbøker, talere og steder. I tillegg er det for hver preken en lenke til den tilhørende bibelteksten. Denne lenken fører deg til den norske 1930-oversettelsen på bible.com, hvor du selv kan velge en annen oversettelse hvis du ønsker det.
                 </p>
+
+                <div className="space-y-4 pt-4">
+                  <h3 className="text-lg font-semibold text-foreground">Installér som app (PWA)</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium text-foreground mb-2">Android (Chrome/Edge/Brave)</h4>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Åpne Prekensamlingen i nettleseren.</li>
+                        <li>Trykk på Meny (⋮).</li>
+                        <li>Velg Installer app / Legg til på startskjermen og bekreft.</li>
+                      </ol>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium text-foreground mb-2">iOS (Safari)</h4>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Åpne Prekensamlingen i Safari.</li>
+                        <li>Trykk Del-knappen (firkant med pil opp).</li>
+                        <li>Velg Legg til på Hjem-skjermen og trykk Legg til.</li>
+                      </ol>
+                    </div>
+
+                    <p className="text-sm italic">
+                      Tips: App-ikonet vises på hjemskjermen. Oppdateringer skjer automatisk når du åpner appen med nett. Hvis du ikke ser «Installer»/«Legg til», prøv å laste siden på nytt.
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
