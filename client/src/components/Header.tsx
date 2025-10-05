@@ -21,6 +21,9 @@ interface HeaderProps {
   interpreters: string[];
   selectedInterpreter: string | null;
   onInterpreterChange: (interpreter: string | null) => void;
+  locations: string[];
+  selectedLocation: string | null;
+  onLocationChange: (location: string | null) => void;
   activeFiltersCount: number;
   defaultOpenFilters?: boolean;
   onFiltersOpened?: () => void;
@@ -41,6 +44,9 @@ export function Header({
   interpreters,
   selectedInterpreter,
   onInterpreterChange,
+  locations,
+  selectedLocation,
+  onLocationChange,
   activeFiltersCount,
   defaultOpenFilters = false,
   onFiltersOpened,
@@ -82,6 +88,9 @@ export function Header({
               interpreters={interpreters}
               selectedInterpreter={selectedInterpreter}
               onInterpreterChange={onInterpreterChange}
+              locations={locations}
+              selectedLocation={selectedLocation}
+              onLocationChange={onLocationChange}
               activeFiltersCount={activeFiltersCount}
               defaultOpen={defaultOpenFilters}
               onOpened={onFiltersOpened}
@@ -124,6 +133,9 @@ export function Header({
                 interpreters={interpreters}
                 selectedInterpreter={selectedInterpreter}
                 onInterpreterChange={onInterpreterChange}
+                locations={locations}
+                selectedLocation={selectedLocation}
+                onLocationChange={onLocationChange}
                 activeFiltersCount={activeFiltersCount}
                 defaultOpen={defaultOpenFilters}
                 onOpened={onFiltersOpened}

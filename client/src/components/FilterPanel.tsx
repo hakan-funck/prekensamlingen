@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Calendar, User, BookOpen, Filter, UserCheck } from "lucide-react";
+import { Calendar, User, BookOpen, Filter, UserCheck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -32,6 +32,9 @@ interface FilterPanelProps {
   interpreters: string[];
   selectedInterpreter: string | null;
   onInterpreterChange: (interpreter: string | null) => void;
+  locations: string[];
+  selectedLocation: string | null;
+  onLocationChange: (location: string | null) => void;
   activeFiltersCount: number;
   defaultOpen?: boolean;
   onOpened?: () => void;
@@ -50,6 +53,9 @@ export function FilterPanel({
   interpreters,
   selectedInterpreter,
   onInterpreterChange,
+  locations,
+  selectedLocation,
+  onLocationChange,
   activeFiltersCount,
   defaultOpen = false,
   onOpened,
@@ -107,11 +113,20 @@ export function FilterPanel({
     }
   };
 
+  const handleLocationChange = (value: string) => {
+    if (value === 'all') {
+      onLocationChange(null);
+    } else {
+      onLocationChange(value);
+    }
+  };
+
   const clearAllFilters = () => {
     onSpeakerChange(null);
     onYearChange(null);
     onBibleBookChange(null);
     onInterpreterChange(null);
+    onLocationChange(null);
   };
 
   return (
@@ -131,7 +146,7 @@ export function FilterPanel({
         <SheetHeader>
           <SheetTitle>Filtrer prekener</SheetTitle>
           <SheetDescription>
-            Velg taler, bibelbok, år og tolk for å filtrere prekenene
+            Velg taler, bibelbok, år, tolk og sted for å filtrere prekenene
           </SheetDescription>
         </SheetHeader>
         <div className="space-y-6 mt-6">
@@ -242,6 +257,34 @@ export function FilterPanel({
                     data-testid={`option-interpreter-${interpreter}`}
                   >
                     {interpreter}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Location Filter */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-medium">Sted</Label>
+            </div>
+            <Select 
+              value={selectedLocation || 'all'} 
+              onValueChange={handleLocationChange}
+            >
+              <SelectTrigger data-testid="select-location">
+                <SelectValue placeholder="Velg sted" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle steder</SelectItem>
+                {locations.map((location) => (
+                  <SelectItem 
+                    key={location} 
+                    value={location}
+                    data-testid={`option-location-${location}`}
+                  >
+                    {location}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -14,6 +14,7 @@ export default function Browse() {
   const [selectedYear, setSelectedYear] = useState<number | string | null>(null);
   const [selectedBibleBook, setSelectedBibleBook] = useState<string | null>(null);
   const [selectedInterpreter, setSelectedInterpreter] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [allSermons, setAllSermons] = useState<Sermon[]>([]);
@@ -96,6 +97,7 @@ export default function Browse() {
         setSelectedYear(null);
         setSelectedBibleBook(null);
         setSelectedInterpreter(null);
+        setSelectedLocation(null);
         
         // Set the sermon as current
         setCurrentSermon(sermon);
@@ -163,6 +165,17 @@ export default function Browse() {
       )
     );
     return uniqueInterpreters.sort((a, b) => a.localeCompare(b, 'nb-NO'));
+  }, [allSermons]);
+
+  const locations = useMemo(() => {
+    const uniqueLocations = Array.from(
+      new Set(
+        allSermons
+          .map(sermon => sermon.sted)
+          .filter(sted => sted && sted.trim() !== '' && sted !== '-')
+      )
+    );
+    return uniqueLocations.sort((a, b) => a.localeCompare(b, 'nb-NO'));
   }, [allSermons]);
 
   const years = useMemo(() => {
@@ -269,11 +282,14 @@ export default function Browse() {
       // Interpreter filter
       const matchesInterpreter = !selectedInterpreter || sermon.tolk === selectedInterpreter;
 
-      return matchesSearch && matchesSpeaker && matchesYear && matchesBibleBook && matchesInterpreter;
-    });
-  }, [allSermons, searchQuery, selectedSpeaker, selectedYear, selectedBibleBook, selectedInterpreter]);
+      // Location filter
+      const matchesLocation = !selectedLocation || sermon.sted === selectedLocation;
 
-  const activeFiltersCount = (selectedSpeaker ? 1 : 0) + (selectedYear ? 1 : 0) + (selectedBibleBook ? 1 : 0) + (selectedInterpreter ? 1 : 0);
+      return matchesSearch && matchesSpeaker && matchesYear && matchesBibleBook && matchesInterpreter && matchesLocation;
+    });
+  }, [allSermons, searchQuery, selectedSpeaker, selectedYear, selectedBibleBook, selectedInterpreter, selectedLocation]);
+
+  const activeFiltersCount = (selectedSpeaker ? 1 : 0) + (selectedYear ? 1 : 0) + (selectedBibleBook ? 1 : 0) + (selectedInterpreter ? 1 : 0) + (selectedLocation ? 1 : 0);
 
   const handlePlayPause = (sermon: Sermon) => {
     if (currentSermon?.id === sermon.id) {
@@ -346,6 +362,9 @@ export default function Browse() {
         interpreters={interpreters}
         selectedInterpreter={selectedInterpreter}
         onInterpreterChange={setSelectedInterpreter}
+        locations={locations}
+        selectedLocation={selectedLocation}
+        onLocationChange={setSelectedLocation}
         activeFiltersCount={activeFiltersCount}
         defaultOpenFilters={shouldOpenFilters}
         onFiltersOpened={handleFiltersOpened}
