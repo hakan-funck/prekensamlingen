@@ -248,17 +248,27 @@ export function FilterPanel({
             </Select>
           </div>
 
-          {/* Clear Filters */}
-          {activeFiltersCount > 0 && (
+          {/* Action Buttons */}
+          <div className="space-y-3">
             <Button
-              variant="outline"
-              onClick={clearAllFilters}
+              variant="default"
+              onClick={() => setOpen(false)}
               className="w-full"
-              data-testid="button-clear-filters"
+              data-testid="button-show-results"
             >
-              Fjern alle filtre
+              Vis
             </Button>
-          )}
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={clearAllFilters}
+                className="w-full"
+                data-testid="button-clear-filters"
+              >
+                Fjern alle filtre
+              </Button>
+            )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
