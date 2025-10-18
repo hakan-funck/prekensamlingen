@@ -5,8 +5,26 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { InstallPWA } from "@/components/InstallPWA";
 import heroBanner from "@assets/ChatGPT Image 4. okt. 2025, 00_11_32_1759529595739.png";
+import { useState, useEffect } from "react";
+import { fetchSermonsFromSheet } from "@/lib/googleSheets";
 
 export default function Home() {
+  const [sermonCount, setSermonCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const loadSermonCount = async () => {
+      try {
+        const spreadsheetId = '1mKk16Z1sJ--Dj5GQCVOJE7erRClYAsVUaSiql_RsZfg';
+        const sermons = await fetchSermonsFromSheet(spreadsheetId, 300);
+        setSermonCount(sermons.length);
+      } catch (error) {
+        console.error('Error loading sermon count:', error);
+      }
+    };
+    
+    loadSermonCount();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Simple Header */}
@@ -100,7 +118,7 @@ export default function Home() {
                     Bla i alle prekener
                   </h3>
                   <p className="text-base text-muted-foreground mb-4">
-                    190 prekener tilgjengelig
+                    {sermonCount !== null ? `${sermonCount} prekener tilgjengelig` : 'Laster...'}
                   </p>
                   <Button 
                     variant="default" 
