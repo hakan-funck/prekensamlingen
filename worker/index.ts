@@ -1,4 +1,5 @@
-interface Env {
+export interface Env {
+  ASSETS: Fetcher;
   AUDIO_BUCKET: R2Bucket;
 }
 
@@ -6,11 +7,14 @@ function isGoogleDriveId(key: string): boolean {
   return /^[a-zA-Z0-9_-]{28,33}$/.test(key);
 }
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-  const { request, env, params } = context;
-  const keyParts = params.key as string[] | undefined;
-  const fileKey = keyParts ? keyParts.join('/') : '';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+  'Access-Control-Allow-Headers': 'Range',
+  'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
+};
 
+async function handleAudio(request: Request, env: Env, fileKey: string): Promise<Response> {
   if (!fileKey) {
     return new Response(JSON.stringify({ error: 'File key is required' }), {
       status: 400,
@@ -18,20 +22,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     });
   }
 
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-    'Access-Control-Allow-Headers': 'Range',
-    'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
-  };
-
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
-
   const rangeHeader = request.headers.get('range') || undefined;
 
-  // --- Case 1: Google Drive file (old links not yet migrated to R2) ---
+  // --- Case 1: Google Drive file (gamle lenker som ikke er flyttet til R2 enda) ---
   if (isGoogleDriveId(fileKey)) {
     let driveUrl = `https://drive.google.com/uc?export=download&id=${fileKey}`;
     const driveHeaders: Record<string, string> = {
@@ -41,7 +34,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     let driveResponse = await fetch(driveUrl, { headers: driveHeaders, redirect: 'follow' });
 
-    // Google Drive shows an interstitial "confirm" page for larger files
     const contentType = driveResponse.headers.get('content-type') || '';
     if (contentType.includes('text/html')) {
       const html = await driveResponse.text();
@@ -71,7 +63,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return new Response(driveResponse.body, { status: driveResponse.status, headers });
   }
 
-  // --- Case 2: R2-lagret fil (den nye, foretrukne løsningen) ---
+  // --- Case 2: R2-lagret fil (den foretrukne løsningen) ---
   const objectKey = fileKey.startsWith('sermons/') ? fileKey : `sermons/${fileKey}`;
 
   const r2Options: R2GetOptions = {};
@@ -96,22 +88,18 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   const headers = new Headers(corsHeaders);
-  object.writeHttpMetadata(headers);
   headers.set('Content-Type', object.httpMetadata?.contentType || 'audio/mpeg');
   headers.set('Accept-Ranges', 'bytes');
   headers.set('Cache-Control', 'public, max-age=3600');
   headers.set('etag', object.httpEtag);
 
-  const isPartial = 'range' in object && (object as R2ObjectBody).range !== undefined;
-  if (isPartial) {
-    const r2 = object as R2Object & { range?: { offset: number; length: number } };
-    const total = r2.size;
-    if (r2.range) {
-      const start = r2.range.offset;
-      const end = start + r2.range.length - 1;
-      headers.set('Content-Range', `bytes ${start}-${end}/${total}`);
-      headers.set('Content-Length', String(r2.range.length));
-    }
+  const r2 = object as R2Object & { range?: { offset: number; length: number } };
+  const isPartial = !!r2.range;
+  if (isPartial && r2.range) {
+    const start = r2.range.offset;
+    const end = start + r2.range.length - 1;
+    headers.set('Content-Range', `bytes ${start}-${end}/${r2.size}`);
+    headers.set('Content-Length', String(r2.range.length));
   } else {
     headers.set('Content-Length', String(object.size));
   }
@@ -124,4 +112,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     status: isPartial ? 206 : 200,
     headers,
   });
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    if (url.pathname.startsWith('/api/audio/')) {
+      const fileKey = decodeURIComponent(url.pathname.replace('/api/audio/', ''));
+      return handleAudio(request, env, fileKey);
+    }
+
+    // Alt annet: la Cloudflare servere selve nettsiden som vanlig
+    return env.ASSETS.fetch(request);
+  },
 };
